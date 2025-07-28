@@ -1,0 +1,20 @@
+<div id="modal" class="modal" style="display: none;">
+  <div class="modal-content">
+    <h3>Add a new book</h3>
+    <form id="uploadForm">
+      <label for="bookName">Titole <span>*</span></label>
+      <input type="text" id="bookName" placeholder="Es: Il piccolo principe" required />
+
+      <label for="authorName">Author (optional)</label>
+      <input type="text" id="authorName" placeholder="Es: Antoine de Saint-Exupéry" />
+
+      <label for="fileInput">File (PDF, EPUB, MOBI) <span>*</span></label>
+      <input type="file" id="fileInput" accept=".pdf,.epub,.mobi" required />
+
+      <div class="modal-buttons">
+        <button type="submit" class="submit-btn">Upload</button>
+        <button type="button" class="cancel-btn" onclick="closeModal()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
