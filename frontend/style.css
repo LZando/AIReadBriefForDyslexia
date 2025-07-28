@@ -3,57 +3,242 @@
   --color-sidebar: #d9d9d9;
   --color-text: #333333;
   --color-divider: #cccccc;
+  --color-jump: #73C4F6;
 }
 
 body {
   margin: 0;
+  font-family: sans-serif;
   display: flex;
-  height: 100vh;
-  font-family: Arial, sans-serif;
   background-color: var(--color-background);
+  height: 100vh;
 }
 
-.page {
+.pagecontainer{
+  margin: 20px;
   display: flex;
-  padding: 20px;
+  width: 100%;
+  gap: 20px;
 }
 
-.sidebar {
-  width: 250px;
+.navbar {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+  gap: 20px;
+}
+
+.navbaroptions {
   background-color: var(--color-sidebar);
+  width: 70px;
+  border-radius: 15px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.navbaroptions img.deactive {
+  background-color: var(--color-background);
+  margin-top: 10px;
+  width: 45px;
+  height: 45px;
+  cursor: pointer;
+  border-radius: 50%;
+  padding: 4px;
+  box-sizing: border-box;
+}
+
+.navbaroptions img  {
+  background-color: var(--color-jump);
+  margin-top: 10px;
+  width: 45px;
+  height: 45px;
+  cursor: pointer;
+  border-radius: 50%;
+  padding: 4px;
+  box-sizing: border-box;
+}
+
+
+.progress-tracker {
+  font-family: sans-serif;
+  background-color: #dcdcdc;
   padding: 20px;
+  height: 100vh;
+  box-sizing: border-box;
+}
+
+.progress-tracker h2 {
+  margin: 0 0 10px;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.status-label {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 15px;
+}
+
+.chapter-timeline {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  position: relative;
+}
+
+.chapter-timeline::before {
+  content: "";
+  position: absolute;
+  left: 13px;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background-color: #ccc;
+}
+
+.chapter-timeline li {
+  position: relative;
+  padding-left: 35px;
+  margin-bottom: 25px;
+  font-size: 14px;
+  color: #000;
+}
+
+.chapter-timeline li::before {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: #ccc;
+  z-index: 1;
+}
+
+.chapter-timeline li.completed::before {
+  background-color: #5cc4ff;
+}
+
+
+.navbartitles {
+  width: 250px;
+  background-color: #dcdcdc;
+  padding: 20px 10px;
+  font-family: sans-serif;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  border-radius: 20px;
+  box-sizing: border-box;
+  border-radius: 15px;
 }
 
-.sidebar h2 {
-  margin: 0;
+.navbartitles h2 {
   text-align: center;
+  margin: 0 0 10px;
+  font-size: 20px;
 }
 
-.spacer {
+.navbartitles hr {
+  border: none;
+  border-top: 1px solid #aaa;
+  margin: 10px 0;
+}
+
+.book-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
   flex-grow: 1;
+  overflow-y: auto;
+}
+
+.book-list li {
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.book-list li strong {
+  font-weight: bold;
 }
 
 .add-book {
   text-align: center;
-  padding-top: 10px;
-  border-top: 1px solid var(--color-divider);
-  font-size: 0.9rem;
-  color: var(--color-text);
+  font-size: 14px;
+  color: #333;
+  cursor: pointer;
+  padding: 10px 0;
+}
+
+
+.progress-tracker {
+  background-color: var(--color-sidebar);
+  width: 200px;
+  border-radius: 15px;
+  height: 100%;
+}
+
+
+.hidden {
+  display: none;
+}
+
+.output {
+      width: 100%;
+      padding-left: 20px;
+      background-color: #ffffff;
+      border-radius: 15px;
+    }
+
+.generate-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: #ffffff;
+  padding: 15px 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  font-family: 'Segoe UI', sans-serif;
+  z-index: 1000;
+}
+
+.generate-form{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.generate-container .options {
+  margin-bottom: 10px;
+  display: flex;
+  gap: 15px;
+}
+
+.generate-container label {
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 5px;
   cursor: pointer;
 }
 
-.add-book:hover {
-  text-decoration: underline;
+.generate-container button {
+  background-color: var(--color-jump);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
-.main {
-  flex-grow: 1;
-  padding: 40px;
+.generate-container button:hover {
+  background-color: var(--color-jump);
 }
+
 
 .modal {
   display: none;

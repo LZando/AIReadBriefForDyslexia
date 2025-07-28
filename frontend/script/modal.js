@@ -1,18 +1,8 @@
-window.addEventListener('DOMContentLoaded', () => {
-  fetch('modal_add_book.html')
-    .then(res => {
-      if (!res.ok) throw new Error(`HTTP error ${res.status}`);
-      return res.text();
-    })
-    .then(html => {
-      const container = document.getElementById('modal-container');
-      if (!container) throw new Error('Modal container not found.');
-      container.innerHTML = html;
-      setupModalEvents();
-    })
-    .catch(err => {
-      console.error('Errore nel caricamento della modale:', err);
-    });
+window.addEventListener("DOMContentLoaded", async () => {
+  const container = document.getElementById("navbar");
+  const res = await fetch("components/navbar.html");
+  const html = await res.text();
+  container.innerHTML = html;
 });
 
 function openModal() {

@@ -6,21 +6,37 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="page">
-    <div class="sidebar">
-      <h2>Library</h2>
-      <div class="spacer"></div>
-      <div class="add-book" onclick="openModal()">+ add new book</div>
+  <div class="pagecontainer">
+
+    <div id="navbar"></div>
+
+
+    <div class="output">
+
     </div>
 
-    <div class="main">
-      <!-- Qui potrai mostrare i libri caricati -->
-    </div>
+      <div class="generate-container">
+        <form class="generate-form" id="generate-form">
+          <div class="options">
+            <label>
+              <input type="radio" name="generateOption" value="summary" checked />
+              Summarization
+            </label>
+            <label>
+              <input type="radio" name="generateOption" value="characters" />
+              Characters
+            </label>
+          </div>
+          <button type="submit">Genera</button>
+        </form>
+      </div>
+
+
   </div>
 
   <!-- Modale caricata dinamicamente -->
   <div id="modal-container"></div>
 
-  <script src="script/modal.js"></script>
+  <script type="module" src="script/mainscript.js"></script>
 </body>
 </html>

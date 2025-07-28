@@ -28,7 +28,6 @@ if (!dbExists) {
       chapter_number INTEGER,
       title TEXT,
       content TEXT NOT NULL,
-      summary TEXT,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY(book_id) REFERENCES books(id)
     );
@@ -37,26 +36,10 @@ if (!dbExists) {
   console.log('Database created and initialized successfully.');
 } else {
   console.log('Database already exists.');
-
-  // Check if the new columns exist, add them if they don't
-  try {
-    db.prepare('SELECT filename FROM books LIMIT 1').get();
-  } catch (error) {
-    console.log('Adding new columns to existing database...');
-    db.exec(`
-      ALTER TABLE books ADD COLUMN filename TEXT;
-      ALTER TABLE books ADD COLUMN original_name TEXT;
-      ALTER TABLE books ADD COLUMN filepath TEXT;
-      ALTER TABLE books ADD COLUMN file_size INTEGER;
-      ALTER TABLE books ADD COLUMN mime_type TEXT;
-    `);
-    console.log('Database schema updated successfully.');
-  }
 }
 
 function addBook(bookData) {
   if (typeof bookData === 'string') {
-    // Legacy support: if only title is passed as string
     const stmt = db.prepare('INSERT INTO books (title, author) VALUES (?, ?)');
     const result = stmt.run(bookData, 'Anonimous');
     return result.lastInsertRowid;
@@ -120,4 +103,14 @@ module.exports = {
   addChapter,
   getChaptersByBookId,
   db
+};
+
+function addBook(title, author) {
+  const stmt = db.prepare('INSERT INTO books (title, author) VALUES (?, ?)');
+  const info = stmt.run(title, author || '');
+  return info.lastInsertRowid;
+}
+
+module.exports = {
+  addBook
 };
