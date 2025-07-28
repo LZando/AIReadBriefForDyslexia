@@ -1,168 +1,187 @@
 # TODO - AIReadBriefForDyslexia 📋
 
-## 🚀 Funzionalità Principali da Implementare
+## 🚀 Core Features to Implement
 
-### Priorità Alta 🔴
-- [ ] **Sistema di Autenticazione**
-  - [ ] Login/Registrazione utenti
-  - [ ] Gestione sessioni
-  - [ ] Profili utente personalizzati
+### High Priority 🔴
+- [ ] **AI Integration**
+  - [ ] Google Gemini API integration
+  - [ ] Chapter summarization functionality
+  - [ ] Character extraction and description
+  - [ ] Context preservation across chapters
 
-- [ ] **Gestione Avanzata Libri**
-  - [ ] Modifica/eliminazione libri
-  - [ ] Categorizzazione (genere, difficoltà, età)
-  - [ ] Sistema di tag personalizzati
-  - [ ] Ricerca e filtri avanzati
+- [ ] **Book Management**
+  - [ ] Upload and parse book files (PDF, EPUB, TXT)
+  - [ ] Chapter detection and segmentation
+  - [ ] Book metadata management
+  - [ ] Reading progress tracking
 
-- [ ] **Lettura e Supporto**
-  - [ ] Visualizzatore di testo con font adattivi
-  - [ ] Controllo velocità di lettura
-  - [ ] Evidenziazione righe
-  - [ ] Sintesi vocale integrata
+- [ ] **User Interface**
+  - [ ] Chapter summary display
+  - [ ] Character profile viewer
+  - [ ] Reading progress visualization
+  - [ ] Dyslexia-friendly design implementation
 
-### Priorità Media 🟡
-- [ ] **Interfaccia Utente**
-  - [ ] Design responsive per mobile
-  - [ ] Tema scuro/chiaro
-  - [ ] Personalizzazione font e colori
-  - [ ] Animazioni e transizioni fluide
+### Medium Priority 🟡
+- [ ] **Enhanced AI Features**
+  - [ ] Smart chapter summarization
+  - [ ] Character relationship mapping
+  - [ ] Plot point extraction
+  - [ ] Reading difficulty assessment
 
-- [ ] **Funzionalità Social**
-  - [ ] Condivisione libri con altri utenti
-  - [ ] Sistema di raccomandazioni
-  - [ ] Recensioni e valutazioni
+- [ ] **User Experience**
+  - [ ] Responsive design for mobile
+  - [ ] Dark/light theme toggle
+  - [ ] Font customization (OpenDyslexic, etc.)
+  - [ ] Color scheme personalization
 
-- [ ] **Analytics e Progressi**
-  - [ ] Tracciamento tempo di lettura
-  - [ ] Statistiche personali
-  - [ ] Obiettivi di lettura
-  - [ ] Report settimanali/mensili
+- [ ] **Reading Tools**
+  - [ ] Text-to-speech integration
+  - [ ] Reading speed control
+  - [ ] Line highlighting
+  - [ ] Bookmark system
 
-### Priorità Bassa 🟢
-- [ ] **Integrazioni**
-  - [ ] Import da Goodreads/Amazon
-  - [ ] Esportazione dati
-  - [ ] Backup automatico
+### Low Priority 🟢
+- [ ] **Advanced Features**
+  - [ ] Multiple book comparison
+  - [ ] Reading analytics and insights
+  - [ ] Export summaries and notes
+  - [ ] Social sharing capabilities
 
-- [ ] **Funzionalità Avanzate**
-  - [ ] OCR per immagini di testo
-  - [ ] Traduzione automatica
-  - [ ] Note e annotazioni
-  - [ ] Bookmark e segnalibri
+- [ ] **Integration**
+  - [ ] Import from Goodreads/Amazon
+  - [ ] Export to various formats
+  - [ ] Cloud backup and sync
 
-## 🛠️ Miglioramenti Tecnici
+## 🛠️ Technical Improvements
 
 ### Backend
-- [ ] **API RESTful completa**
-  - [ ] Endpoint per tutte le operazioni CRUD
-  - [ ] Validazione input
-  - [ ] Gestione errori migliorata
-  - [ ] Rate limiting
+- [ ] **API Development**
+  - [ ] RESTful API endpoints
+  - [ ] Input validation and sanitization
+  - [ ] Error handling and logging
+  - [ ] Rate limiting for AI calls
 
-- [ ] **Database**
-  - [ ] Migrazione a PostgreSQL/MySQL
-  - [ ] Ottimizzazione query
-  - [ ] Backup automatico
-  - [ ] Migrazioni schema
+- [ ] **Database Optimization**
+  - [ ] Schema design for books and summaries
+  - [ ] Query optimization
+  - [ ] Data migration scripts
+  - [ ] Backup and recovery
 
-- [ ] **Sicurezza**
-  - [ ] Validazione file upload
-  - [ ] Sanitizzazione input
-  - [ ] HTTPS
-  - [ ] CORS configurato
+- [ ] **Security**
+  - [ ] File upload validation
+  - [ ] API key management
+  - [ ] CORS configuration
+  - [ ] Input sanitization
 
 ### Frontend
-- [ ] **Framework Moderno**
-  - [ ] Migrazione a React/Vue.js
+- [ ] **Modern Framework**
+  - [ ] Consider React/Vue.js migration
   - [ ] State management
-  - [ ] Componenti riutilizzabili
-  - [ ] PWA (Progressive Web App)
+  - [ ] Component architecture
+  - [ ] Progressive Web App features
 
-- [ ] **Accessibilità**
-  - [ ] Supporto screen reader
-  - [ ] Navigazione da tastiera
-  - [ ] Contrasto colori WCAG
-  - [ ] Test con utenti dislessici
+- [ ] **Accessibility**
+  - [ ] WCAG 2.1 compliance
+  - [ ] Screen reader support
+  - [ ] Keyboard navigation
+  - [ ] High contrast modes
 
-## 🧪 Testing e Qualità
+## 🧪 Testing and Quality
 
-- [ ] **Test Unitari**
-  - [ ] Jest per backend
-  - [ ] Test frontend
-  - [ ] Coverage minimo 80%
+- [ ] **Unit Testing**
+  - [ ] Jest for backend testing
+  - [ ] Frontend component testing
+  - [ ] AI integration testing
+  - [ ] Minimum 80% coverage
 
-- [ ] **Test di Integrazione**
-  - [ ] API testing
-  - [ ] E2E testing
+- [ ] **Integration Testing**
+  - [ ] API endpoint testing
+  - [ ] End-to-end user flows
   - [ ] Performance testing
+  - [ ] Accessibility testing
 
 - [ ] **Code Quality**
-  - [ ] ESLint configurazione
-  - [ ] Prettier
-  - [ ] Husky pre-commit hooks
+  - [ ] ESLint configuration
+  - [ ] Prettier formatting
+  - [ ] Pre-commit hooks
   - [ ] Code review process
 
-## 📚 Documentazione
+## 📚 Documentation
 
 - [ ] **API Documentation**
-  - [ ] Swagger/OpenAPI
-  - [ ] Esempi di utilizzo
+  - [ ] Swagger/OpenAPI specs
+  - [ ] Usage examples
   - [ ] Postman collection
 
-- [ ] **Guida Utente**
-  - [ ] Screenshot e tutorial
-  - [ ] FAQ
-  - [ ] Video guide
+- [ ] **User Guide**
+  - [ ] Screenshots and tutorials
+  - [ ] FAQ section
+  - [ ] Video demonstrations
 
-- [ ] **Documentazione Sviluppatore**
-  - [ ] Setup development
+- [ ] **Developer Documentation**
+  - [ ] Setup instructions
   - [ ] Contributing guidelines
   - [ ] Architecture overview
 
-## 🚀 Deployment e DevOps
+## 🚀 Deployment and DevOps
 
 - [ ] **CI/CD Pipeline**
-  - [ ] GitHub Actions
-  - [ ] Test automatici
-  - [ ] Deployment automatico
+  - [ ] GitHub Actions workflow
+  - [ ] Automated testing
+  - [ ] Deployment automation
 
 - [ ] **Hosting**
-  - [ ] Vercel/Netlify per frontend
-  - [ ] Heroku/Railway per backend
-  - [ ] Database cloud
+  - [ ] Frontend hosting (Vercel/Netlify)
+  - [ ] Backend hosting (Railway/Heroku)
+  - [ ] Database hosting
 
 - [ ] **Monitoring**
-  - [ ] Logging centralizzato
+  - [ ] Application logging
   - [ ] Error tracking
   - [ ] Performance monitoring
 
-## 🎯 Obiettivi Specifici per Dislessia
+## 🎯 Dyslexia-Specific Features
 
-- [ ] **Font Specializzati**
-  - [ ] OpenDyslexic
-  - [ ] Dyslexie
-  - [ ] Lexie Readable
+- [ ] **Typography**
+  - [ ] OpenDyslexic font integration
+  - [ ] Dyslexie font support
+  - [ ] Customizable font sizes
+  - [ ] Line spacing options
 
-- [ ] **Strumenti di Supporto**
-  - [ ] Spacing personalizzabile
-  - [ ] Colori di sfondo
-  - [ ] Evidenziazione parole
-  - [ ] Riga di lettura
+- [ ] **Visual Aids**
+  - [ ] Color-coded summaries
+  - [ ] Visual character maps
+  - [ ] Progress indicators
+  - [ ] Reading guides
 
-- [ ] **Esercizi e Training**
-  - [ ] Esercizi di lettura
-  - [ ] Tracciamento progressi
-  - [ ] Gamification
+- [ ] **Cognitive Support**
+  - [ ] Memory aids for characters
+  - [ ] Plot timeline visualization
+  - [ ] Context reminders
+  - [ ] Reading comprehension tools
+
+## 🔧 Infrastructure
+
+- [ ] **Environment Setup**
+  - [ ] Environment variables management
+  - [ ] API key configuration
+  - [ ] Development/production configs
+
+- [ ] **File Processing**
+  - [ ] PDF parsing library
+  - [ ] EPUB reader integration
+  - [ ] Text extraction optimization
+  - [ ] File format validation
 
 ---
 
-## 📝 Note
+## 📝 Notes
 
-- **Priorità**: 🔴 Alta | 🟡 Media | 🟢 Bassa
-- **Status**: ⏳ In Progress | ✅ Completato | ❌ Bloccato
-- **Sprint**: Ogni 2 settimane per priorità alta
+- **Priority**: 🔴 High | 🟡 Medium | 🟢 Low
+- **Status**: ⏳ In Progress | ✅ Completed | ❌ Blocked
+- **Sprint**: Every 2 weeks for high priority items
 
 ---
 
-*Ultimo aggiornamento: [Data]*
-*Responsabile: [Nome]*
+*Last updated: [Date]*
+*Responsible: [Name]*
