@@ -2,41 +2,49 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Library</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AIReadBriefForDyslexia - Intelligent Reading Assistant</title>
+  <meta name="description" content="AI-powered reading assistant for dyslexic readers" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="pagecontainer">
-
+    <!-- Navbar container -->
     <div id="navbar"></div>
-
-
+    
+    <!-- Main content area -->
     <div class="output">
-
+      <!-- Content will be dynamically loaded here -->
     </div>
 
-      <div class="generate-container">
-        <form class="generate-form" id="generate-form">
-          <div class="options">
-            <label>
-              <input type="radio" name="generateOption" value="summary" checked />
-              Summarization
-            </label>
-            <label>
-              <input type="radio" name="generateOption" value="characters" />
-              Characters
-            </label>
-          </div>
-          <button type="submit">Genera</button>
-        </form>
-      </div>
-
-
+    <!-- Generate content section -->
+    <div class="generate-container">
+      <form class="generate-form" id="generate-form">
+        <div class="options">
+          <label>
+            <input type="radio" name="generateOption" value="summary" checked />
+            Summarization
+          </label>
+          <label>
+            <input type="radio" name="generateOption" value="characters" />
+            Characters
+          </label>
+        </div>
+        <button type="submit">Generate</button>
+      </form>
+    </div>
   </div>
 
-  <!-- Modale caricata dinamicamente -->
+  <!-- Modal container -->
   <div id="modal-container"></div>
 
-  <script type="module" src="script/mainscript.js"></script>
+  <!-- Loading indicator -->
+  <div id="loading" style="display: none;">
+    <div class="loading-spinner"></div>
+    <p>Loading...</p>
+  </div>
+
+  <!-- Main application script -->
+  <script type="module" src="js/main.js"></script>
 </body>
 </html>
