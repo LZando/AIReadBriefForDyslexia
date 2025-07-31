@@ -1,0 +1,368 @@
+    :root {
+      --primary-color: #1a73e8;
+      --ground: #d2d2d2;
+      --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+     }
+
+    * {
+        font-family: var(--font-family);
+    }
+
+    body {
+        height: 100vh;
+        background-color: black;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        min-width: 400px;
+    }
+
+    .mainpage {
+        background-color: rgb(224, 224, 224);
+        width: 100%;
+        padding: 20px;
+        display: flex;
+    }
+
+    .hide{
+        display:none;
+    }
+
+    #library-menu-button.active,
+    #chapter-menu-button.active {
+      background-color: rgba(255, 255, 255, 0.1);
+
+    }
+
+    .navbar {
+        display: flex;
+        border-radius: 20px;
+        height: 100%;
+        gap: 20px;
+    }
+
+    .navbar-options{
+        width: 60px;
+        background-color: var(--ground);
+        border-radius: 20px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+
+    #library-menu-button, #chapter-menu-button {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 35px;
+        height: 35px;
+        margin-top: 20px;
+        border-radius: 20px;
+        background-color: var(--primary-color);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        transition: all 0.2s ease;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .navbar-library,
+.navbar-chapters {
+    transition: all 0.3s ease-in-out;
+    overflow: hidden;
+}
+
+
+.navbar-library.collapsed,
+.navbar-chapters.collapsed {
+    width: 0;
+    opacity: 0;
+    padding: 0;
+}
+
+
+    .icon-container:hover {
+        background-color: rgba(0, 0, 0, 0.1);
+        border-color: rgba(0, 0, 0, 0.3);
+        transform: scale(1.05);
+    }
+
+    .icon {
+        font-size: 18px;
+        color: #333;
+        opacity: 0.6;
+        transition: all 0.2s ease;
+        font-weight: 300;
+    }
+
+    .icon-container:hover .icon {
+        opacity: 1;
+        color: #000;
+        font-weight: 400;
+    }
+
+    .navbar-library{
+        display: flex;
+        flex-direction: column;
+        width: 160px;
+        background-color: var(--ground);
+        border-radius: 20px;
+        height: 100%;
+    }
+
+    .navbar-library > div:first-child,
+    .navbar-library > div:last-child {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex: 1;
+        font-weight: 500;
+        font-size: 14px;
+        color: #333;
+    }
+
+    .navbar-library > div:first-child p {
+        font-weight: 600;
+        font-size: 16px;
+        margin: 0;
+    }
+
+    .navbar-library > div:last-child p {
+        font-weight: 500;
+        font-size: 14px;
+        margin: 0;
+        cursor: pointer;
+        transition: color 0.2s ease;
+    }
+
+    .navbar-library > div:last-child p:hover {
+        color: var(--primary-color);
+    }
+
+    .navbar-library #library-container {
+        flex: 8;
+    }
+
+
+
+    .navbar-chapters{
+        width: 120px;
+        background-color: #6054e3;
+        border-radius: 20px;
+        height: 100%;
+    }
+
+    .resultarea {
+        flex: 1;
+        padding: 2rem;
+        background-color: white;
+        border-radius: 20px;
+        margin-left: 1rem;
+    }
+
+    .generateform{
+        width: 250px;
+        height: 60px;
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        background-color: #e0da21;
+        border-radius: 20px 0 20px 0;
+    }
+
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+    }
+
+    .modal-content {
+        background-color: white;
+        margin: 5% auto;
+        padding: 0;
+        border-radius: 16px;
+        width: 90%;
+        max-width: 500px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        animation: modalSlideIn 0.3s ease-out;
+    }
+
+    @keyframes modalSlideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-50px) scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 24px 24px 0 24px;
+        border-bottom: 1px solid #e5e7eb;
+        margin-bottom: 24px;
+    }
+
+    .modal-header h2 {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 600;
+        color: #1f2937;
+    }
+
+    .close {
+        color: #9ca3af;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: color 0.2s ease;
+        line-height: 1;
+    }
+
+    .close:hover {
+        color: #6b7280;
+    }
+
+    #add-library-form {
+        padding: 0 24px 24px 24px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: #374151;
+        font-size: 14px;
+    }
+
+    .form-group input[type="text"] {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        box-sizing: border-box;
+    }
+
+    .form-group input[type="text"]:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
+    }
+
+    .form-group input[type="file"] {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px dashed #d1d5db;
+        border-radius: 8px;
+        background-color: #f9fafb;
+        cursor: pointer;
+        transition: border-color 0.2s ease, background-color 0.2s ease;
+        box-sizing: border-box;
+    }
+
+    .form-group input[type="file"]:hover {
+        border-color: var(--primary-color);
+        background-color: #f0f9ff;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        margin-top: 32px;
+    }
+
+    .btn-primary, .btn-secondary {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 500;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+        background-color: var(--primary-color);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background-color: #1557b0;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3);
+    }
+
+    .btn-secondary {
+        background-color: #f3f4f6;
+        color: #374151;
+    }
+
+    .btn-secondary:hover {
+        background-color: #e5e7eb;
+        transform: translateY(-1px);
+    }
+
+    /* Library Items Styles */
+    .library-item {
+        background-color: white;
+        border-radius: 8px;
+        padding: 16px;
+        margin: 8px 12px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    .library-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .library-item-content h4 {
+        margin: 0 0 4px 0;
+        font-size: 14px;
+        font-weight: 600;
+        color: #1f2937;
+    }
+
+    .library-item-content p {
+        margin: 0 0 4px 0;
+        font-size: 12px;
+        color: #6b7280;
+    }
+
+    .library-item-content small {
+        font-size: 11px;
+        color: #9ca3af;
+    }
+
+    /* Success message animation */
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(100%);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }

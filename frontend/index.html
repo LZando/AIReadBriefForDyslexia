@@ -1,50 +1,69 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AIReadBriefForDyslexia - Intelligent Reading Assistant</title>
-  <meta name="description" content="AI-powered reading assistant for dyslexic readers" />
-  <link rel="stylesheet" href="style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style/styles.css">
+    <meta charset="UTF-8">
+    <title>Title</title>
 </head>
 <body>
-  <div class="pagecontainer">
-    <!-- Navbar container -->
-    <div id="navbar"></div>
-    
-    <!-- Main content area -->
-    <div class="output">
-      <!-- Content will be dynamically loaded here -->
-    </div>
+    <div class="mainpage">
+        <div class="navbar">
+            <div class="navbar-options">
+                <div class="icon-container" id="library-menu-button">
+                    <span class="icon">▤</span>
+                </div>
+                <div class="icon-container" id="chapter-menu-button">
+                    <span class="icon" >▢</span>
+                </div>
+            </div>
+            <div id="navbar-library" class="navbar-library">
+                <div>
+                    <p>Library</p>
+                </div>
+                <div id="library-container">
 
-    <!-- Generate content section -->
-    <div class="generate-container">
-      <form class="generate-form" id="generate-form">
-        <div class="options">
-          <label>
-            <input type="radio" name="generateOption" value="summary" checked />
-            Summarization
-          </label>
-          <label>
-            <input type="radio" name="generateOption" value="characters" />
-            Characters
-          </label>
+                </div>
+                <div>
+                    <p>+ Add library</p>
+                </div>
+            </div>
+            <div id="navbar-chapters" class="navbar-chapters"></div>
         </div>
-        <button type="submit">Generate</button>
-      </form>
+        <div class="resultarea">
+          <div class="generateform"></div>
+        </div>
+
     </div>
-  </div>
 
-  <!-- Modal container -->
-  <div id="modal-container"></div>
-
-  <!-- Loading indicator -->
-  <div id="loading" style="display: none;">
-    <div class="loading-spinner"></div>
-    <p>Loading...</p>
-  </div>
-
-  <!-- Main application script -->
-  <script type="module" src="js/main.js"></script>
+    <div id="add-library-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add a new book</h2>
+                <span class="close">&times;</span>
+            </div>
+            <form id="add-library-form">
+                <div class="form-group">
+                    <label for="title">Title *</label>
+                    <input type="text" id="title" name="title" required>
+                </div>
+                <div class="form-group">
+                    <label for="author">Author</label>
+                    <input type="text" id="author" name="author">
+                </div>
+                <div class="form-group">
+                    <label for="pdf-file">Upload a PDF</label>
+                    <input type="file" id="pdf-file" name="pdf-file" accept=".pdf">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" id="cancel-btn">Cancel</button>
+                    <button type="submit" class="btn-primary">Add</button>
+                </div>
+            </form>
+        </div>
+    </div>
+<script src="script/script.js" defer></script>
 </body>
 </html>
