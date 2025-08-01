@@ -58,10 +58,67 @@
                     <input type="file" id="pdf-file" name="pdf-file" accept=".pdf">
                 </div>
                 <div class="form-actions">
-                    <button type="button" class="btn-secondary" id="cancel-btn">Cancel</button>
-                    <button type="submit" class="btn-primary">Add</button>
+                    <button type="button" class="btn btn-secondary" id="cancel-btn">
+                        <span class="icon">✕</span>
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        Add
+                    </button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <div id="chapter-confirmation" class="modal-chapter">
+        <div class="chapter-container">
+            <div class="chapter-page-selector">
+                <div class="chapter-header">
+                    <h2>Choose a page that contains a chapter and confirm.</h2>
+                    <button class="btn btn-secondary close-modal-btn">
+                        <span class="icon">✕</span>
+                    </button>
+                </div>
+                <div class="chapter-page-immagine">
+                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRpRLCMrwvEX8iBrELwwPi35qpYreJtL6-r2Q&s" alt="Chapter Page Preview">
+                </div>
+                <div class="chapter-choser">
+                    <button class="nav-btn prev-btn">
+                        <span>‹</span>
+                    </button>
+                    <div class="page-info">
+                        <div class="page-number">
+                            Page <input type="number" min="1" max="24" value="14"> of 24
+                        </div>
+                        <input type="range" class="page-slider" min="1" max="24" value="14">
+                    </div>
+                    <button class="nav-btn next-btn">
+                        <span>›</span>
+                    </button>
+                </div>
+                <div class="chapter-actions">
+                    <button class="btn btn-primary">
+                        Confirm Page
+                    </button>
+                </div>
+            </div>
+            <div class="chapter-result">
+                <div class="result-header">
+                    <h3>Chapter Analysis</h3>
+                </div>
+                <div class="chapter-resut-container">
+                    <div id="chapter-result">
+                        <div class="placeholder-content">
+                            <p>Select a page to see the analysis results</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="chapter-confirmation-buttons">
+                     <button class="btn btn-primary" id="chapter-delete-button">
+                        Save
+                     </button>
+                </div>
+            </div>
         </div>
     </div>
 <script src="script/script.js" defer></script>
