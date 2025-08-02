@@ -7,7 +7,6 @@ const port = 3000;
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'frontend')));
 
-// Importa le route API
 const apiRoutes = require('./api/routes');
 app.use('/api', apiRoutes);
 

@@ -31,14 +31,14 @@ class NavBar {
 
 const navbar = new NavBar();
 
-class LibraryModal {
+class AddLibraryModal {
     constructor() {
         this.modal = document.getElementById('add-library-modal');
         this.addButton = document.querySelector('.navbar-library > div:last-child p');
         this.closeButton = document.querySelector('.close');
         this.cancelButton = document.getElementById('cancel-btn');
         this.form = document.getElementById('add-library-form');
-        
+
         this.init();
     }
 
@@ -54,7 +54,7 @@ class LibraryModal {
         });
 
         this.form.addEventListener('submit', (e) => this.handleSubmit(e));
-        
+
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && this.modal.style.display === 'block') {
                 this.closeModal();
@@ -65,7 +65,7 @@ class LibraryModal {
     openModal() {
         this.modal.style.display = 'block';
         document.getElementById('title').focus();
-        document.body.style.overflow = 'hidden'; 
+        document.body.style.overflow = 'hidden';
     }
 
     closeModal() {
@@ -76,27 +76,26 @@ class LibraryModal {
 
     handleSubmit(e) {
         e.preventDefault();
-        
+
         const formData = new FormData(this.form);
         const title = formData.get('title');
         const author = formData.get('author');
         const pdfFile = formData.get('pdf-file');
-        
+
         if (!title.trim()) {
             alert('Il titolo è obbligatorio!');
             return;
         }
-        
+
         const libraryItem = {
             title: title.trim(),
             author: author.trim() || 'Autore sconosciuto',
             pdfFile: pdfFile,
             dateAdded: new Date().toLocaleDateString('it-IT')
         };
-        
-        // Close modal
+
         this.closeModal();
-        
+
         // Show success message
         this.showSuccessMessage('Library aggiunta con successo!');
     }
@@ -117,9 +116,9 @@ class LibraryModal {
             animation: slideIn 0.3s ease-out;
         `;
         successDiv.textContent = message;
-        
+
         document.body.appendChild(successDiv);
-        
+
         // Remove after 3 seconds
         setTimeout(() => {
             successDiv.remove();
@@ -127,7 +126,7 @@ class LibraryModal {
     }
 }
 
-const libraryModal = new LibraryModal();
+const libraryModal = new AddLibraryModal();
 
 class ChapterPageController {
     constructor() {
@@ -135,18 +134,75 @@ class ChapterPageController {
         this.totalPages = 24; // Default value
         this.bookname = 'alan'; // Default bookname
         
-        // Get DOM elements
-        this.pageImage = document.querySelector('.chapter-page-immagine img');
-        this.prevBtn = document.querySelector('.prev-btn');
-        this.nextBtn = document.querySelector('.next-btn');
-        this.pageSlider = document.querySelector('.page-slider');
-        this.pageInput = document.querySelector('#page-number input[type="number"]');
-        
         this.init();
     }
 
     init() {
-        // Bind event handlers
+        this.removeEventListeners();
+        
+        // Find elements with updated selectors
+        this.prevBtn = document.querySelector('.chapter-page-selector .prev-btn');
+        this.nextBtn = document.querySelector('.chapter-page-selector .next-btn');
+        this.pageSlider = document.querySelector('.chapter-page-selector .page-slider');
+        this.pageInput = document.querySelector('#page-number input[type="number"]');
+        this.pageImage = document.querySelector('.chapter-page-immagine img');
+        this.pageConfirmBtn = document.getElementById("confirm-page-btn");
+
+        if (this.pageSlider) {
+            this.pageSlider.min = 1;
+            this.pageSlider.max = this.totalPages;
+            this.pageSlider.value = this.currentPage;
+        }
+
+        if (this.pageInput) {
+            this.pageInput.min = 1;
+            this.pageInput.max = this.totalPages;
+            this.pageInput.value = this.currentPage;
+            this.pageInput.step = 1;
+
+            this.pageInput.addEventListener('keydown', (e) => {
+                // Allow: backspace, delete, tab, escape, enter, home, end, left, right
+                if ([8, 9, 27, 13, 35, 36, 37, 39, 46].indexOf(e.keyCode) !== -1 ||
+                    // Allow Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X, Ctrl+Z
+                    (e.ctrlKey && [65, 67, 86, 88, 90].indexOf(e.keyCode) !== -1)) {
+                    return; // let it happen, don't do anything
+                }
+                // Ensure that it is a number and stop the keypress
+                if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
+                    e.preventDefault();
+                }
+            });
+        }
+
+        this.updateDisplay();
+        this.addEventListeners();
+    }
+
+    removeEventListeners() {
+        // Remove existing listeners to prevent duplicates
+        if (this.prevBtn && this.prevClickHandler) {
+            this.prevBtn.removeEventListener('click', this.prevClickHandler);
+        }
+        if (this.nextBtn && this.nextClickHandler) {
+            this.nextBtn.removeEventListener('click', this.nextClickHandler);
+        }
+        if (this.pageSlider && this.sliderInputHandler) {
+            this.pageSlider.removeEventListener('input', this.sliderInputHandler);
+        }
+        if (this.pageInput) {
+            if (this.inputHandler) {
+                this.pageInput.removeEventListener('input', this.inputHandler);
+            }
+            if (this.inputChangeHandler) {
+                this.pageInput.removeEventListener('change', this.inputChangeHandler);
+            }
+            if (this.inputBlurHandler) {
+                this.pageInput.removeEventListener('blur', this.inputBlurHandler);
+            }
+        }
+    }
+
+    addEventListeners() {
         this.prevClickHandler = () => this.previousPage();
         this.nextClickHandler = () => this.nextPage();
         this.sliderInputHandler = (e) => this.setPage(parseInt(e.target.value));
@@ -170,7 +226,12 @@ class ChapterPageController {
             }
         };
 
-        // Add event listeners
+        if (this.pageConfirmBtn) {
+            this.pageConfirmHandler = () => this.confirmpage();
+            this.pageConfirmBtn.addEventListener('click', this.pageConfirmHandler);
+        }
+
+
         if (this.prevBtn) {
             this.prevBtn.addEventListener('click', this.prevClickHandler);
         }
@@ -185,6 +246,10 @@ class ChapterPageController {
             this.pageInput.addEventListener('change', this.inputChangeHandler);
             this.pageInput.addEventListener('blur', this.inputBlurHandler);
         }
+    }
+
+    confirmpage(){
+        alert(this.currentPage);
     }
 
     updateTotalPages(totalPages) {
@@ -281,24 +346,13 @@ class ChapterPageController {
         // Carica l'immagine reale dal server
         const imageUrl = `/api/book-image/${this.bookname}/${this.currentPage}`;
         
-        // Aggiungi timestamp per evitare cache del browser
         const timestamp = new Date().getTime();
         this.pageImage.src = `${imageUrl}?t=${timestamp}`;
-
-        // Aggiungi loading effect
         this.pageImage.style.opacity = '0.7';
         
-        // Gestisci il caricamento dell'immagine
         this.pageImage.onload = () => {
             this.pageImage.style.opacity = '1';
             console.log(`Immagine caricata con successo per la pagina ${this.currentPage}`);
-        };
-        
-        this.pageImage.onerror = () => {
-            console.error(`Errore nel caricamento dell'immagine per la pagina ${this.currentPage}`);
-            // Fallback a un'immagine placeholder
-            this.pageImage.src = `https://via.placeholder.com/400x600/334155/ffffff?text=Page+${this.currentPage}+(Not+Found)`;
-            this.pageImage.style.opacity = '1';
         };
     }
 
@@ -379,13 +433,20 @@ async function startElaborateBook() {
   });
 
   const data = await response.json();
-  return parseInt(data.message);
+
+  if (!data.success || !data.pages) {
+    throw new Error('Errore nella risposta: ' + JSON.stringify(data));
+  }
+
+
+  return data.pages;
 }
 
 async function initializeBookElaboration() {
   try {
     const numberOfPages = await startElaborateBook();
     aggiornaNumeroPagine(numberOfPages);
+    chapterPageController.updateImage();
   } catch (error) {
     console.error('Errore durante l\'elaborazione del libro:', error);
   }
@@ -399,7 +460,6 @@ async function aggiornaNumeroPagine(numberOfPages) {
     return;
   }
 
-  // Aggiorna solo il testo, non l'intero contenuto HTML
   pageContainer.innerHTML = `Page <input type="number" min="1" max="${numberOfPages}" value="1"> of ${numberOfPages}`;
 
   // Aggiorna il controller esistente con il nuovo numero di pagine
