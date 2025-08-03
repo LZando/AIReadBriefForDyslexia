@@ -1,0 +1,547 @@
+/* ==========================================================================
+   CUSTOM CSS - Only complex styles that can't be converted to Tailwind
+   ========================================================================== */
+
+:root {
+    --primary-color: #2d3748;
+    --ground: #d2d2d2;
+    --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+* {
+    font-family: var(--font-family);
+}
+
+/* ==========================================================================
+   JAVASCRIPT STATE CLASSES - Required for functionality
+   ========================================================================== */
+
+.hide {
+    display: none;
+}
+
+/* Navbar smooth transitions - controlled by JavaScript */
+.navbar-library,
+.navbar-chapters {
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.navbar-library.collapsed,
+.navbar-chapters.collapsed {
+    opacity: 0 !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border-width: 0 !important;
+    transform: translateX(-20px) !important;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* MOBILE DRAWER ANIMATIONS */
+.mobile-drawer-open {
+    transform: translateX(0) !important;
+}
+
+.mobile-backdrop-open {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+    .mobile-drawer-width {
+        width: calc(100vw - 2rem);
+        max-width: 320px;
+    }
+}
+
+@media (max-width: 480px) {
+    .mobile-drawer-width {
+        width: calc(100vw - 1rem);
+        max-width: 280px;
+    }
+}
+
+/* Active button states - controlled by JavaScript */
+#library-menu-button.active,
+#chapter-menu-button.active {
+    background-color: rgba(255, 255, 255, 0.9) !important;
+    box-shadow: 0 4px 16px rgba(45, 55, 72, 0.2) !important;
+    border-color: var(--primary-color) !important;
+}
+
+#library-menu-button.active:hover,
+#chapter-menu-button.active:hover {
+    background-color: white !important;
+}
+
+#library-menu-button.active span,
+#chapter-menu-button.active span {
+    color: var(--primary-color) !important;
+    text-shadow: none !important;
+}
+
+/* ==========================================================================
+   CHAPTER MODAL - Complex modal styles that need specific CSS
+   ========================================================================== */
+
+.modal-chapter {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-chapter.show {
+    display: flex;
+}
+
+.chapter-container {
+    width: 85%;
+    max-width: 1200px;
+    height: 90vh;
+    display: flex;
+    gap: 2rem;
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+.chapter-page-selector {
+    background: var(--ground);
+    flex: 2;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.chapter-page-selector::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+.chapter-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    z-index: 1;
+}
+
+.chapter-header h2 {
+    margin: 0;
+    color: #2d3748;
+    font-size: 1.5rem;
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.chapter-page-immagine {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex: 1;
+    margin-bottom: 1.5rem;
+    z-index: 1;
+    height: 100%;
+    min-height: 0;
+}
+
+.chapter-page-immagine img {
+    width: auto;
+    height: 100%;
+    max-height: 100%;
+    max-width: 100%;
+    object-fit: contain;
+    border-radius: 12px;
+}
+
+.chapter-choser {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    z-index: 1;
+}
+
+.page-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+}
+
+.page-number {
+    font-weight: 600;
+    color: #2d3748;
+    font-size: 1rem;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.page-number input[type="number"] {
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-radius: 6px;
+    padding: 0.2rem 0.4rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #2d3748;
+    text-align: center;
+    outline: none;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+    width: 45px;
+    height: 25px;
+    font-family: var(--font-family);
+    vertical-align: middle;
+    -moz-appearance: textfield;
+}
+
+.page-number input[type="number"]::-webkit-outer-spin-button,
+.page-number input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.page-number input[type="number"]:focus {
+    border-color: #2d3748;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Custom range slider */
+.page-slider {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 3px;
+    outline: none;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    position: relative;
+}
+
+.page-slider::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 6px;
+    background: var(--primary-color);
+    border-radius: 3px;
+    width: var(--slider-progress, 58%);
+    transition: width 0.2s ease;
+}
+
+.page-slider::-webkit-slider-track {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 3px;
+}
+
+.page-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    position: relative;
+    z-index: 2;
+}
+
+.page-slider::-moz-range-track {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 3px;
+    border: none;
+}
+
+.page-slider::-moz-range-progress {
+    height: 6px;
+    background: var(--primary-color);
+    border-radius: 3px;
+    border: none;
+}
+
+.page-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.chapter-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    z-index: 1;
+    margin-top: auto;
+    padding-top: 1rem;
+}
+
+.chapter-confirmation-buttons {
+    display: flex;
+    justify-content: center;
+    z-index: 1;
+}
+
+.chapter-result {
+    background: var(--ground);
+    flex: 1;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    padding: 2rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+
+.chapter-result::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+.result-header {
+    margin-bottom: 1.5rem;
+    z-index: 1;
+}
+
+.result-header h3 {
+    margin: 0;
+    color: #1a365d;
+    font-size: 1.3rem;
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.chapter-resut-container {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    z-index: 1;
+    overflow-y: auto;
+    max-height: 100%;
+}
+
+/* ==========================================================================
+   CHAPTERS LIST STYLES (inside modal container)
+   ========================================================================== */
+
+.chapters-list {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.chapters-list h4 {
+    margin: 0 0 1.5rem 0;
+    color: var(--primary-color);
+    font-size: 1.25rem;
+    font-weight: 600;
+    text-align: center;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+}
+
+.extraction-info {
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    border-left: 4px solid var(--primary-color);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    font-size: 0.875rem;
+    color: #374151;
+    font-weight: 500;
+}
+
+.chapters-container {
+    flex: 1;
+    overflow-y: auto;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.5);
+    min-height: 0;
+}
+
+.chapter-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.chapter-item:last-child {
+    border-bottom: none;
+}
+
+.chapter-number {
+    background: var(--primary-color);
+    color: white;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    min-width: 65px;
+    text-align: center;
+    margin-right: 1rem;
+    flex-shrink: 0;
+}
+
+.chapter-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.chapter-title {
+    margin: 0 0 0.5rem 0;
+    color: #374151;
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+
+.chapter-info {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.8rem;
+    color: #6b7280;
+    flex-wrap: wrap;
+}
+
+.page-range {
+    font-weight: 500;
+    color: #4b5563;
+}
+
+.page-count {
+    color: #9ca3af;
+    font-style: italic;
+}
+
+/* ==========================================================================
+   CUSTOM SCROLLBARS
+   ========================================================================== */
+
+#library-container::-webkit-scrollbar,
+#navbar-chapters::-webkit-scrollbar,
+.chapters-container::-webkit-scrollbar,
+.chapter-resut-container::-webkit-scrollbar,
+#result-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+#library-container::-webkit-scrollbar-track,
+#navbar-chapters::-webkit-scrollbar-track,
+.chapters-container::-webkit-scrollbar-track,
+.chapter-resut-container::-webkit-scrollbar-track,
+#result-content::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 3px;
+}
+
+#library-container::-webkit-scrollbar-thumb,
+#navbar-chapters::-webkit-scrollbar-thumb,
+.chapters-container::-webkit-scrollbar-thumb,
+.chapter-resut-container::-webkit-scrollbar-thumb,
+#result-content::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 3px;
+    transition: background 0.3s ease;
+}
+
+#library-container::-webkit-scrollbar-thumb:hover,
+#navbar-chapters::-webkit-scrollbar-thumb:hover,
+.chapters-container::-webkit-scrollbar-thumb:hover,
+.chapter-resut-container::-webkit-scrollbar-thumb:hover,
+#result-content::-webkit-scrollbar-thumb:hover {
+    background: #1a202c;
+}
+
+/* Firefox scrollbar */
+#library-container,
+#navbar-chapters,
+.chapters-container,
+.chapter-resut-container,
+#result-content {
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-color) rgba(0, 0, 0, 0.05);
+}
+
+/* ==========================================================================
+   ANIMATIONS
+   ========================================================================== */
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ==========================================================================
+   LOADING SPINNER
+   ========================================================================== */
+
+.spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s ease-in-out infinite;
+}
