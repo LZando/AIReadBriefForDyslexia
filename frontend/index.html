@@ -1,91 +1,104 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Read Brief For Dyslexia</title>
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#2d3748',
-                        ground: '#d2d2d2'
-                    },
-                    fontFamily: {
-                        'sans': ['Inter', 'system-ui', 'sans-serif']
-                    }
-                }
-            }
-        }
-    </script>
-    
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-    
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="style/styles.css">
+    <title>Dixy</title>
+    <link rel="icon" type="image/x-icon" href="assets/logos/dixylogo.ico">
+    <link rel="shortcut icon" type="image/x-icon" href="assets/logos/dixylogo.ico">
+    <link rel="apple-touch-icon" href="assets/logos/dixylogo.ico">
+    <link rel="stylesheet" href="styles/tailwind.css">
+    <link rel="stylesheet" href="styles/custom.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
-    <div class="mainpage">
-        <div class="navbar">
-            <div class="navbar-options">
-                <div class="icon-container" id="library-menu-button">
-                    <span class="icon">▤</span>
+    <div class="bg-background h-[100vh] w-[100%] p-5 flex gap-10">
+        <div class="flex rounded-[20px] h-full gap-10">
+            <!-- Main Menu Icons -->
+            <div class="bg-box w-[8rem] flex flex-col items-center rounded-[20px] p-4 relative overflow-hidden">
+                <img class="w-24 h-24 mb-6 rounded-lg object-cover" src="assets/logos/dixylogo.png">
+                
+                <div class="flex justify-center items-center w-12 h-12 mt-5 rounded-xl bg-primary border border-black/10 transition-all duration-300 cursor-pointer select-none shadow-lg hover:bg-gray-800 hover:-translate-y-0.5 hover:shadow-xl" id="library-menu-button">
+                    <span class="text-white text-xl font-bold">▤</span>
                 </div>
-                <div class="icon-container" id="chapter-menu-button">
-                    <span class="icon" >▢</span>
-                </div>
-            </div>
-            <div id="navbar-library" class="navbar-library">
-                <div>
-                    <p>Library</p>
-                </div>
-                <div id="library-container">
-
-                </div>
-                <div>
-                    <p>+ Add library</p>
+                
+                <div class="flex justify-center items-center w-12 h-12 mt-5 rounded-xl bg-primary border border-black/10 transition-all duration-300 cursor-pointer select-none shadow-lg hover:bg-gray-800 hover:-translate-y-0.5 hover:shadow-xl" id="chapter-menu-button">
+                    <span class="text-white text-xl font-bold">☰</span>
                 </div>
             </div>
-            <div id="navbar-chapters" class="navbar-chapters"></div>
+            
+            <!-- Library Menu -->
+            <div id="navbar-library" class="bg-box w-[14rem] navbar-library flex flex-col rounded-[20px] h-full overflow-hidden">
+                <div class="flex justify-center items-center py-6 px-4 bg-gradient-to-br from-primary to-gray-800 text-white rounded-t-[20px]">
+                    <p class="font-semibold text-base m-0">Library</p>
+                </div>
+                <div id="library-container" class="flex-1 p-4 overflow-y-auto">
+                    <!-- Library items will be populated here -->
+                </div>
+                <div class="p-4 border-t border-gray-200 bg-white/50 flex justify-center items-center">
+                    <p class="text-sm font-medium m-0 cursor-pointer py-2.5 px-4 rounded-lg bg-gradient-to-br from-primary to-gray-800 text-white transition-all duration-300 hover:from-gray-800 hover:to-gray-700">+ Add library</p>
+                </div>
+            </div>
         </div>
-        <div class="resultarea">
-          <div class="generateform"></div>
+        
+        <!-- Main Content Area -->
+        <div class="flex-1 flex flex-col bg-white rounded-[20px] p-8">
+          <!-- Result Area -->
+          <div id="result-content" class="flex-1 p-4 border border-gray-200 rounded-xl overflow-y-auto text-gray-700 leading-relaxed mb-8 bg-gray-50/50">
+            <div class="flex items-center justify-center h-full text-gray-400">
+              <p class="text-center">
+                <span class="text-2xl block mb-2">📄</span>
+                Seleziona un libro e alcuni capitoli, poi clicca "Genera" per vedere il riassunto qui
+              </p>
+            </div>
+          </div>
+          
+          <!-- Generate Button (in fondo) -->
+          <div class="flex justify-center items-center">
+            <button id="genera-btn" class="inline-flex items-center justify-center px-6 py-3 rounded-2xl font-semibold text-base cursor-pointer transition-all duration-200 shadow-lg bg-primary text-white gap-2 hover:-translate-y-0.5 hover:shadow-xl active:translate-y-0 hover:bg-gray-700">
+              <span class="text-xl">⚡</span>
+              Genera
+            </button>
+          </div>
         </div>
-
+        
+        <!-- Chapters Menu -->
+        <div id="navbar-chapters-container" class="navbar-chapters bg-box flex flex-col rounded-[20px] h-full w-[24rem] overflow-hidden">
+            <div class="flex justify-center items-center py-6 px-4 bg-gradient-to-br from-primary to-gray-800 text-white rounded-t-[20px]">
+                <p class="font-semibold text-base m-0">Chapters</p>
+            </div>
+            <div id="navbar-chapters" class="flex-1 p-4 overflow-y-auto">
+                <!-- Chapters will be populated here -->
+            </div>
+        </div>
     </div>
 
-    <div id="add-library-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Add a new book</h2>
-                <span class="close">&times;</span>
+    <!-- Add Library Modal -->
+    <div id="add-library-modal" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+            <div class="flex justify-between items-center p-6 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-900 m-0">Add a new book</h2>
+                <span class="text-gray-400 text-2xl font-bold cursor-pointer transition-colors hover:text-gray-600">&times;</span>
             </div>
-            <form id="add-library-form">
-                <div class="form-group">
-                    <label for="title">Title *</label>
-                    <input type="text" id="title" name="title" required>
+            <form id="add-library-form" class="p-6">
+                <div class="mb-5">
+                    <label for="title" class="block text-sm font-semibold text-gray-700 mb-2">Title *</label>
+                    <input type="text" id="title" name="title" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-colors text-base">
                 </div>
-                <div class="form-group">
-                    <label for="author">Author</label>
-                    <input type="text" id="author" name="author">
+                <div class="mb-5">
+                    <label for="author" class="block text-sm font-semibold text-gray-700 mb-2">Author</label>
+                    <input type="text" id="author" name="author" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-colors text-base">
                 </div>
-                <div class="form-group">
-                    <label for="pdf-file">Upload a PDF</label>
-                    <input type="file" id="pdf-file" name="pdf-file" accept=".pdf">
+                <div class="mb-6">
+                    <label for="pdf-file" class="block text-sm font-semibold text-gray-700 mb-2">Upload a PDF</label>
+                    <input type="file" id="pdf-file" name="pdf-file" accept=".pdf" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-colors text-base file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-gray-700">
                 </div>
-                <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" id="cancel-btn">
-                        <span class="icon">✕</span>
+                <div class="flex gap-3 justify-end">
+                    <button type="button" class="inline-flex items-center justify-center px-6 py-3 border-2 border-primary rounded-2xl font-semibold text-base cursor-pointer transition-all duration-200 bg-gray-50 text-primary gap-2 hover:bg-primary hover:text-white" id="cancel-btn">
+                        <span class="text-lg">✕</span>
                         Cancel
                     </button>
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="inline-flex items-center justify-center px-6 py-3 border-0 rounded-2xl font-semibold text-base cursor-pointer transition-all duration-200 shadow-lg bg-primary text-white gap-2 hover:-translate-y-0.5 hover:shadow-xl hover:bg-gray-700">
                         Add
                     </button>
                 </div>
@@ -93,21 +106,22 @@
         </div>
     </div>
 
+    <!-- Chapter Confirmation Modal -->
     <div id="chapter-confirmation" class="modal-chapter">
         <div class="chapter-container">
             <div class="chapter-page-selector">
                 <div class="chapter-header">
                     <h2>Choose a page that contains a chapter and confirm.</h2>
-                    <button class="btn btn-secondary close-modal-btn">
-                        <span class="icon">✕</span>
+                    <button class="inline-flex items-center justify-center w-10 h-10 p-0 rounded-full border-2 border-primary font-semibold text-lg cursor-pointer transition-all duration-200 bg-gray-50 text-primary hover:bg-primary hover:text-white min-w-[40px]">
+                        <span>✕</span>
                     </button>
                 </div>
                 <div class="chapter-page-immagine">
                     <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTN59-ODQizLkfZ0BZNpcKNjn6mQu39WRk28w&s" alt="Chapter Page Preview">
                 </div>
                 <div class="chapter-choser">
-                    <button class="nav-btn prev-btn">
-                        <span>‹</span>
+                    <button class="w-12 h-12 rounded-xl bg-white/90 border-0 flex items-center justify-center cursor-pointer transition-all duration-200 backdrop-blur-md hover:bg-white hover:scale-110 hover:shadow-lg">
+                        <span class="text-2xl font-bold text-primary">‹</span>
                     </button>
                     <div class="page-info">
                         <div id="page-number" class="page-number">
@@ -115,31 +129,35 @@
                         </div>
                         <input type="range" class="page-slider" min="1" max="24" value="14">
                     </div>
-                    <button class="nav-btn next-btn">
-                        <span>›</span>
+                    <button class="w-12 h-12 rounded-xl bg-white/90 border-0 flex items-center justify-center cursor-pointer transition-all duration-200 backdrop-blur-md hover:bg-white hover:scale-110 hover:shadow-lg">
+                        <span class="text-2xl font-bold text-primary">›</span>
                     </button>
                 </div>
                 <div class="chapter-actions">
-                    <button class="btn btn-primary" id="confirm-page-btn">
+                    <button class="inline-flex items-center justify-center px-6 py-3 border-0 rounded-2xl font-semibold text-base cursor-pointer transition-all duration-200 shadow-lg bg-primary text-white gap-2 hover:-translate-y-0.5 hover:shadow-xl hover:bg-gray-700" id="confirm-page-btn">
                         Confirm Page
                     </button>
+                </div>
+                <div class="chapter-confirmation-buttons">
+                    <button class="inline-flex items-center justify-center px-6 py-3 border-0 rounded-2xl font-semibold text-base cursor-pointer transition-all duration-200 shadow-lg bg-primary text-white gap-2 hover:-translate-y-0.5 hover:shadow-xl hover:bg-gray-700" id="extractChaptersBtn">Extract</button>
                 </div>
             </div>
             <div class="chapter-result">
                 <div class="result-header">
-                    <h3>Chapter Analysis</h3>
+                    <h3>Extracted Chapters</h3>
                 </div>
                 <div class="chapter-resut-container">
-                    <div id="chapter-result">
-                        <div class="placeholder-content">
-                            <p>Select a page to see the analysis results</p>
+                    <div class="chapters-list">
+                        <h4>Extracted Chapters</h4>
+                        <div class="extraction-info">
+                            <strong>Book:</strong> <span id="book-name-display">-</span><br>
+                            <strong>Total Pages:</strong> <span id="total-pages-display">-</span><br>
+                            <strong>Processing Status:</strong> <span id="processing-status">Ready to extract</span>
+                        </div>
+                        <div class="chapters-container" id="chapters-list-container">
+                            <!-- Chapters will be populated here -->
                         </div>
                     </div>
-                </div>
-                <div class="chapter-confirmation-buttons">
-                     <button class="btn btn-primary" id="save-chapters-btn">
-                        Save
-                     </button>
                 </div>
             </div>
         </div>

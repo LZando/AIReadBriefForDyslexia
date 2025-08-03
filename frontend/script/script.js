@@ -2,30 +2,489 @@ class NavBar {
   constructor() {
     this.stateLibrary = false;
     this.stateChapter = false;
-
-    this.menuLibrary = document.getElementById('navbar-library');
     this.toggleLibrary = document.getElementById('library-menu-button');
-
-    this.menuChapters = document.getElementById('navbar-chapters');
+    this.menuLibrary = document.getElementById('navbar-library');
     this.toggleChapters = document.getElementById('chapter-menu-button');
+    this.menuChapters = document.getElementById('navbar-chapters');
+    this.menuChaptersContainer = document.getElementById('navbar-chapters-container'); // Add reference to parent container
+    this.libraryContainer = document.getElementById('library-container');
+    this.selectedBook = null;
+    this.selectedChapters = new Set();
+    this.lastSelectedChapterIndex = -1;
+    this.lastClickTime = 0;
+    this.lastClickedChapter = null;
 
+    // Bind methods
     this.toggleLibraryMenu = this.toggleLibraryMenu.bind(this);
     this.toggleChaptersMenu = this.toggleChaptersMenu.bind(this);
 
+    // Add event listeners
     this.toggleLibrary.addEventListener('click', this.toggleLibraryMenu);
     this.toggleChapters.addEventListener('click', this.toggleChaptersMenu);
+
+    // Initialize chapters placeholder
+    this.displayChapters([]);
+
+    // Load library books on initialization
+    this.loadLibraryBooks();
   }
 
-  toggleLibraryMenu() {
+  async toggleLibraryMenu() {
     this.stateLibrary = !this.stateLibrary;
     this.toggleLibrary.classList.toggle("active");
     this.menuLibrary.classList.toggle('collapsed');
+    
+    // Refresh books when opening library
+    if (this.stateLibrary) {
+      await this.loadLibraryBooks();
+    }
   }
 
   toggleChaptersMenu() {
     this.stateChapter = !this.stateChapter;
     this.toggleChapters.classList.toggle("active");
-    this.menuChapters.classList.toggle('collapsed');
+    // Toggle the parent container, not the inner div
+    if (this.menuChaptersContainer) {
+      this.menuChaptersContainer.classList.toggle('collapsed');
+    }
+  }
+
+  async loadLibraryBooks() {
+    try {
+      const response = await fetch('/api/library');
+      const data = await response.json();
+      
+      if (data.success) {
+        this.displayBooks(data.books);
+      } else {
+        console.error('Failed to load library books:', data.error);
+        this.displayError('Failed to load library books');
+      }
+    } catch (error) {
+      console.error('Error loading library books:', error);
+      this.displayError('Error loading library books');
+    }
+  }
+
+  displayBooks(books) {
+    if (!this.libraryContainer) {
+      console.error('libraryContainer not found!');
+      return;
+    }
+    
+    if (books.length === 0) {
+      this.libraryContainer.innerHTML = '<p class="text-center py-8 px-4 text-gray-500 text-sm italic">No books available</p>';
+      return;
+    }
+
+    this.libraryContainer.innerHTML = books.map(book => `
+      <div class="library-book-item relative overflow-hidden flex items-center p-3 mb-2 rounded-xl cursor-pointer bg-white/60 border border-transparent transition-all duration-300 hover:bg-white/90 hover:border-primary hover:-translate-y-0.5 hover:shadow-md ${this.selectedBook === book.id ? 'selected bg-gradient-to-br from-primary to-gray-800 text-white border-white/20' : ''}"
+           data-book-id="${book.id}" 
+           data-book-name="${book.displayName}">
+        <div class="library-shimmer absolute top-0 left-[-100%] w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent transition-all duration-700"></div>
+        <div class="book-info flex-1 min-w-0 relative z-10">
+          <h4 class="book-title text-sm font-semibold m-0 mb-1 leading-tight overflow-hidden text-ellipsis whitespace-nowrap transition-colors duration-300 ${this.selectedBook === book.id ? 'text-white' : 'text-gray-800 hover:text-primary'}">${book.displayName}</h4>
+        </div>
+        <div class="book-status text-xs font-bold min-w-5 text-center relative z-10 transition-colors duration-300 ${this.selectedBook === book.id ? 'text-green-300' : 'text-green-600'}">
+          ✓
+        </div>
+      </div>
+    `).join('');
+
+    // Add event listeners to book items
+    this.libraryContainer.querySelectorAll('.library-book-item').forEach((item, index) => {
+      item.addEventListener('click', () => {
+        this.selectBook(item);
+      });
+      
+      // Add hover shimmer effect
+      item.addEventListener('mouseenter', () => {
+        const shimmer = item.querySelector('.library-shimmer');
+        shimmer.style.left = '100%';
+        setTimeout(() => {
+          shimmer.style.left = '-100%';
+        }, 700);
+      });
+      
+      // Reset shimmer on mouse leave for smoother experience
+      item.addEventListener('mouseleave', () => {
+        const shimmer = item.querySelector('.library-shimmer');
+        shimmer.style.left = '-100%';
+      });
+    });
+  }
+
+  selectBook(bookElement) {
+    const bookId = bookElement.dataset.bookId;
+    const bookName = bookElement.dataset.bookName;
+    
+    // Remove selection from all books - reset to normal Tailwind classes
+    this.libraryContainer.querySelectorAll('.library-book-item').forEach(item => {
+      // Reset to normal state classes
+      item.className = item.className
+        .replace(/selected bg-gradient-to-br from-primary to-gray-800 text-white border-white\/20/, '')
+        .replace(/bg-gradient-to-br from-primary to-gray-800/, 'bg-white/60')
+        .replace(/text-white/, '')
+        .replace(/border-white\/20/, 'border-transparent');
+      
+      // Reset title and status colors
+      const title = item.querySelector('.book-title');
+      const status = item.querySelector('.book-status');
+      
+      if (title) {
+        title.className = title.className.replace(/text-white/, 'text-gray-800 hover:text-primary');
+      }
+      if (status) {
+        status.className = status.className.replace(/text-green-300/, 'text-green-600');
+        status.textContent = '✓';
+      }
+    });
+    
+    // Add selection to clicked book - apply selected Tailwind classes
+    bookElement.className = bookElement.className
+      .replace(/bg-white\/60/, 'bg-gradient-to-br from-primary to-gray-800')
+      .replace(/border-transparent/, 'border-white/20') + ' selected text-white';
+    
+    // Update title and status for selected book
+    const selectedTitle = bookElement.querySelector('.book-title');
+    const selectedStatus = bookElement.querySelector('.book-status');
+    
+    if (selectedTitle) {
+      selectedTitle.className = selectedTitle.className.replace(/text-gray-800 hover:text-primary/, 'text-white');
+    }
+    if (selectedStatus) {
+      selectedStatus.className = selectedStatus.className.replace(/text-green-600/, 'text-green-300');
+      selectedStatus.textContent = '✓';
+    }
+    
+    this.selectedBook = bookId;
+    
+    // Update the chapter controller with the selected book
+    if (window.chapterPageController) {
+      window.chapterPageController.bookname = bookName;
+    }
+    
+    // Load and display chapters for selected book
+    this.loadBookChapters(bookId);  // Use bookId instead of bookName
+    
+    // Show success message
+    this.showBookSelection(`Selected: ${bookElement.querySelector('.book-title').textContent}`);
+  }
+
+  showBookSelection(message) {
+    // Create a temporary selection message
+    const messageDiv = document.createElement('div');
+    messageDiv.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background-color: #10b981;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 500;
+      z-index: 1001;
+      animation: slideIn 0.3s ease-out;
+    `;
+    messageDiv.textContent = message;
+
+    document.body.appendChild(messageDiv);
+
+    // Remove after 2 seconds
+    setTimeout(() => {
+      messageDiv.remove();
+    }, 2000);
+  }
+
+  displayError(message) {
+    if (!this.libraryContainer) return;
+    
+    this.libraryContainer.innerHTML = `<p class="text-center py-8 px-4 text-red-500 text-sm font-medium">${message}</p>`;
+  }
+
+  async loadBookChapters(bookname) {
+    try {
+      const response = await fetch(`/api/book-chapters/${bookname}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        this.displayChapters(data.chapters);
+        // Clear previous chapter selections
+        this.selectedChapters.clear();
+        this.lastSelectedChapterIndex = -1;
+      } else {
+        console.error('Failed to load chapters:', data.error);
+        this.displayChaptersError('Failed to load chapters');
+      }
+    } catch (error) {
+      console.error('Error loading chapters:', error);
+      this.displayChaptersError('Error loading chapters');
+    }
+  }
+
+  displayChapters(chapters) {
+    if (!this.menuChapters) {
+      console.error('menuChapters element not found!');
+      return;
+    }
+    
+    if (chapters.length === 0) {
+      this.menuChapters.innerHTML = `
+        <div class="chapters-header p-4 border-b border-gray-200 bg-white/50">
+          <h3 class="text-primary text-sm font-semibold m-0 text-center">Chapters</h3>
+        </div>
+        <div class="flex items-center justify-center h-full text-gray-400 p-6">
+          <div class="text-center">
+            <span class="text-3xl block mb-3">📖</span>
+            <p class="text-sm font-medium mb-2">No chapters available</p>
+            <p class="text-xs text-gray-500">Select a book from the library to see its chapters</p>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    const chaptersHTML = `
+      <div class="chapters-header p-4 border-b border-gray-200 bg-white/50">
+        <h3 class="text-primary text-sm font-semibold m-0 mb-2 text-center">Chapters (${chapters.length})</h3>
+        <div class="chapters-actions flex justify-center">
+          <button class="btn-small clear-selection bg-gradient-to-br from-primary to-gray-800 text-white border-0 py-1.5 px-3 rounded-md text-xs font-medium cursor-pointer transition-all duration-300 shadow-sm hover:from-gray-800 hover:to-gray-700 hover:-translate-y-0.5 hover:shadow-md">Clear</button>
+        </div>
+      </div>
+      <div class="chapters-container flex-1 p-4 overflow-y-auto min-h-0">
+        ${chapters.map((chapter, index) => `
+          <div class="chapter-item relative overflow-hidden flex items-center p-3 mb-2 rounded-xl cursor-pointer bg-white/60 border border-transparent transition-all duration-300 hover:bg-white/90 hover:border-primary hover:-translate-y-0.5 hover:shadow-md ${this.selectedChapters.has(chapter.id) ? 'selected bg-gradient-to-br from-primary to-gray-800 text-white border-white/20' : ''}"
+               data-chapter-id="${chapter.id}"
+               data-chapter-index="${index}"
+               data-chapter-number="${chapter.number}">
+            <div class="chapter-shimmer absolute top-0 left-[-100%] w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent transition-all duration-700"></div>
+            <div class="chapter-info flex-1 min-w-0 relative z-10">
+              <h4 class="chapter-title text-sm font-semibold m-0 mb-1 leading-tight overflow-hidden text-ellipsis whitespace-nowrap transition-colors duration-300 ${this.selectedChapters.has(chapter.id) ? 'text-white' : 'text-gray-800 hover:text-primary'}">
+                <span class="chapter-number text-xs font-semibold transition-colors duration-300 ${this.selectedChapters.has(chapter.id) ? 'text-white' : 'text-primary'}">Cap ${chapter.number}</span>
+                <span class="mx-1 ${this.selectedChapters.has(chapter.id) ? 'text-white' : 'text-gray-500'}">•</span>
+                <span class="chapter-text ${this.selectedChapters.has(chapter.id) ? 'text-white' : 'text-gray-800'}">${chapter.title}</span>
+              </h4>
+            </div>
+            <div class="chapter-status text-xs font-bold min-w-5 text-center relative z-10 transition-colors duration-300 ${this.selectedChapters.has(chapter.id) ? 'text-green-300' : 'text-green-600'}">
+              ${this.selectedChapters.has(chapter.id) ? '✓' : ''}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+
+    this.menuChapters.innerHTML = chaptersHTML;
+
+    // Add event listeners to chapter items
+    this.menuChapters.querySelectorAll('.chapter-item').forEach(item => {
+      item.addEventListener('click', (e) => this.selectChapter(item, e));
+      
+      // Add hover shimmer effect - exact same as library
+      item.addEventListener('mouseenter', () => {
+        const shimmer = item.querySelector('.chapter-shimmer');
+        shimmer.style.left = '100%';
+        setTimeout(() => {
+          shimmer.style.left = '-100%';
+        }, 700);
+      });
+      
+      // Reset shimmer on mouse leave for smoother experience
+      item.addEventListener('mouseleave', () => {
+        const shimmer = item.querySelector('.chapter-shimmer');
+        shimmer.style.left = '-100%';
+      });
+    });
+
+    // Add clear selection button listener
+    const clearBtn = this.menuChapters.querySelector('.clear-selection');
+    if (clearBtn) {
+      clearBtn.addEventListener('click', () => this.clearChapterSelection());
+    }
+  }
+
+  selectChapter(chapterElement, event) {
+    const chapterId = chapterElement.dataset.chapterId;
+    const chapterIndex = parseInt(chapterElement.dataset.chapterIndex);
+    const currentTime = Date.now();
+    
+    // Check for double click (within 300ms)
+    const isDoubleClick = (currentTime - this.lastClickTime < 300) && 
+                         (this.lastClickedChapter === chapterId);
+    
+    if (isDoubleClick) {
+      // Double click: select all chapters from 0 to current (inclusive)
+      this.selectAllPreviousChapters(chapterIndex);
+    } else if (event.shiftKey && this.lastSelectedChapterIndex !== -1) {
+      // Range selection
+      this.selectChapterRange(this.lastSelectedChapterIndex, chapterIndex);
+    } else if (event.ctrlKey || event.metaKey) {
+      // Multiple selection (Ctrl/Cmd + click)
+      this.toggleChapterSelection(chapterElement, chapterId);
+    } else {
+      // Single selection
+      this.clearChapterSelection();
+      this.toggleChapterSelection(chapterElement, chapterId);
+    }
+    
+    this.lastSelectedChapterIndex = chapterIndex;
+    this.lastClickTime = currentTime;
+    this.lastClickedChapter = chapterId;
+    this.updateChapterSelectionDisplay();
+  }
+
+  selectChapterRange(startIndex, endIndex) {
+    const start = Math.min(startIndex, endIndex);
+    const end = Math.max(startIndex, endIndex);
+    
+    const chapterItems = this.menuChapters.querySelectorAll('.chapter-item');
+    for (let i = start; i <= end; i++) {
+      if (chapterItems[i]) {
+        const chapterId = chapterItems[i].dataset.chapterId;
+        this.selectedChapters.add(chapterId);
+        chapterItems[i].classList.add('selected');
+      }
+    }
+  }
+
+  toggleChapterSelection(chapterElement, chapterId) {
+    if (this.selectedChapters.has(chapterId)) {
+      this.selectedChapters.delete(chapterId);
+      chapterElement.classList.remove('selected');
+    } else {
+      this.selectedChapters.add(chapterId);
+      chapterElement.classList.add('selected');
+    }
+  }
+
+  selectAllPreviousChapters(toIndex) {
+    // Clear previous selection
+    this.clearChapterSelection();
+    
+    // Select all chapters from 0 to toIndex (inclusive)
+    const chapterItems = this.menuChapters.querySelectorAll('.chapter-item');
+    for (let i = 0; i <= toIndex; i++) {
+      if (chapterItems[i]) {
+        const chapterId = chapterItems[i].dataset.chapterId;
+        this.selectedChapters.add(chapterId);
+        chapterItems[i].classList.add('selected');
+      }
+    }
+  }
+
+  clearChapterSelection() {
+    this.selectedChapters.clear();
+    this.menuChapters.querySelectorAll('.chapter-item').forEach(item => {
+      item.classList.remove('selected');
+    });
+    this.updateChapterSelectionDisplay();
+  }
+
+  updateChapterSelectionDisplay() {
+    this.menuChapters.querySelectorAll('.chapter-item').forEach(item => {
+      const chapterId = item.dataset.chapterId;
+      const isSelected = this.selectedChapters.has(chapterId);
+      
+      // Get child elements
+      const chapterTitle = item.querySelector('.chapter-title');
+      const chapterNumber = item.querySelector('.chapter-number');
+      const chapterSeparator = item.querySelector('.chapter-title .mx-1');
+      const chapterText = item.querySelector('.chapter-text');
+      const chapterStatus = item.querySelector('.chapter-status');
+      
+      if (isSelected) {
+        // Apply selected state - same as library items
+        item.className = item.className
+          .replace(/bg-white\/60/, 'bg-gradient-to-br from-primary to-gray-800')
+          .replace(/border-transparent/, 'border-white/20')
+          .replace(/text-gray-800/, 'text-white');
+        
+        if (!item.classList.contains('selected')) {
+          item.classList.add('selected', 'text-white');
+        }
+        
+        // Update child elements for selected state
+        if (chapterTitle) {
+          chapterTitle.className = chapterTitle.className
+            .replace(/text-gray-800 hover:text-primary/, 'text-white')
+            .replace(/text-gray-800/, 'text-white');
+        }
+        if (chapterNumber) {
+          chapterNumber.className = chapterNumber.className.replace(/text-primary/, 'text-white');
+        }
+        if (chapterSeparator) {
+          chapterSeparator.className = chapterSeparator.className.replace(/text-gray-500/, 'text-white');
+        }
+        if (chapterText) {
+          chapterText.className = chapterText.className.replace(/text-gray-800/, 'text-white');
+        }
+        if (chapterStatus) {
+          chapterStatus.className = chapterStatus.className.replace(/text-green-600/, 'text-green-300');
+          chapterStatus.textContent = '✓';
+        }
+      } else {
+        // Apply unselected state - same as library items
+        item.className = item.className
+          .replace(/selected bg-gradient-to-br from-primary to-gray-800 text-white border-white\/20/, '')
+          .replace(/bg-gradient-to-br from-primary to-gray-800/, 'bg-white/60')
+          .replace(/text-white/, '')
+          .replace(/border-white\/20/, 'border-transparent');
+        
+        item.classList.remove('selected');
+        
+        // Update child elements for unselected state
+        if (chapterTitle) {
+          chapterTitle.className = chapterTitle.className
+            .replace(/text-white/, 'text-gray-800 hover:text-primary');
+        }
+        if (chapterNumber) {
+          chapterNumber.className = chapterNumber.className.replace(/text-white/, 'text-primary');
+        }
+        if (chapterSeparator) {
+          chapterSeparator.className = chapterSeparator.className.replace(/text-white/, 'text-gray-500');
+        }
+        if (chapterText) {
+          chapterText.className = chapterText.className.replace(/text-white/, 'text-gray-800');
+        }
+        if (chapterStatus) {
+          chapterStatus.className = chapterStatus.className.replace(/text-green-300/, 'text-green-600');
+          chapterStatus.textContent = '';
+        }
+      }
+    });
+  }
+
+  displayChaptersError(message) {
+    if (!this.menuChapters) return;
+    
+    this.menuChapters.innerHTML = `
+      <div class="chapters-header p-4 border-b border-gray-200 bg-white/50">
+        <h3 class="text-primary text-sm font-semibold m-0 text-center">Chapters</h3>
+      </div>
+      <p class="text-center py-8 px-4 text-red-500 text-sm font-medium">${message}</p>
+    `;
+  }
+
+  getSelectedChapters() {
+    return Array.from(this.selectedChapters);
+  }
+
+  getSelectedChaptersInfo() {
+    const selected = this.getSelectedChapters();
+    const chapterElements = this.menuChapters.querySelectorAll('.chapter-item');
+    const info = [];
+    
+    selected.forEach(chapterId => {
+      const element = this.menuChapters.querySelector(`[data-chapter-id="${chapterId}"]`);
+      if (element) {
+        info.push({
+          id: chapterId,
+          number: parseInt(element.dataset.chapterNumber),
+          title: element.querySelector('.chapter-title').textContent
+        });
+      }
+    });
+    
+    return info.sort((a, b) => a.number - b.number);
   }
 }
 
@@ -35,7 +494,7 @@ class AddLibraryModal {
     constructor() {
         this.modal = document.getElementById('add-library-modal');
         this.addButton = document.querySelector('.navbar-library > div:last-child p');
-        this.closeButton = document.querySelector('.close');
+        this.closeButton = document.querySelector('#add-library-modal span'); // Fix: select the × span
         this.cancelButton = document.getElementById('cancel-btn');
         this.form = document.getElementById('add-library-form');
 
@@ -43,7 +502,7 @@ class AddLibraryModal {
     }
 
     init() {
-        this.addButton.addEventListener('click', () => this.openModal());
+        this.addButton.addEventListener('click', () => this.handleAddButtonClick());
         this.closeButton.addEventListener('click', () => this.closeModal());
         this.cancelButton.addEventListener('click', () => this.closeModal());
 
@@ -62,6 +521,8 @@ class AddLibraryModal {
         });
     }
 
+
+
     openModal() {
         this.modal.style.display = 'block';
         document.getElementById('title').focus();
@@ -74,7 +535,14 @@ class AddLibraryModal {
         document.body.style.overflow = 'auto';
     }
 
-    handleSubmit(e) {
+    async handleAddButtonClick() {
+        // Clean workspace before opening modal
+        await cleanWorkspace();
+        // Then open the modal
+        this.openModal();
+    }
+
+    async handleSubmit(e) {
         e.preventDefault();
 
         const formData = new FormData(this.form);
@@ -87,17 +555,46 @@ class AddLibraryModal {
             return;
         }
 
-        const libraryItem = {
-            title: title.trim(),
-            author: author.trim() || 'Autore sconosciuto',
-            pdfFile: pdfFile,
-            dateAdded: new Date().toLocaleDateString('it-IT')
-        };
+        if (!pdfFile || pdfFile.size === 0) {
+            alert('Devi selezionare un file PDF!');
+            return;
+        }
 
-        this.closeModal();
+        try {
+            // Upload the PDF to server
+            const uploadFormData = new FormData();
+            uploadFormData.append('title', title.trim());
+            uploadFormData.append('author', author.trim() || 'Autore sconosciuto');
+            uploadFormData.append('pdf-file', pdfFile);
 
-        // Show success message
-        this.showSuccessMessage('Library aggiunta con successo!');
+            const response = await fetch('/api/upload-book', {
+                method: 'POST',
+                body: uploadFormData
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                this.closeModal();
+                this.showSuccessMessage(`Libro "${data.title}" caricato con successo!`);
+
+                // Refresh library list
+                if (navbar) {
+                    await navbar.loadLibraryBooks();
+                }
+
+                // Open chapter modal after a short delay
+                setTimeout(() => {
+                    showChapterModal(data.bookname);
+                }, 1000);
+            } else {
+                throw new Error(data.error || 'Errore nel caricamento del libro');
+            }
+
+        } catch (error) {
+            console.error('Errore durante l\'aggiunta del libro:', error);
+            alert(`Errore: ${error.message}`);
+        }
     }
 
     showSuccessMessage(message) {
@@ -128,11 +625,267 @@ class AddLibraryModal {
 
 const libraryModal = new AddLibraryModal();
 
+// Generate button functionality
+class GenerateController {
+    constructor() {
+        this.generateBtn = document.getElementById('genera-btn');
+        this.resultContent = document.getElementById('result-content');
+        this.isGenerating = false;
+        this.currentGeneration = null;
+        this.init();
+    }
+
+    init() {
+        if (this.generateBtn) {
+            this.generateBtn.addEventListener('click', () => this.handleGenerate());
+        }
+
+        // Restore state on page load
+        this.restoreGenerationState();
+
+        // Handle page unload during generation
+        window.addEventListener('beforeunload', (e) => {
+            if (this.isGenerating) {
+                e.preventDefault();
+                e.returnValue = 'È in corso una generazione. Sei sicuro di voler uscire?';
+                return e.returnValue;
+            }
+        });
+
+        // Periodically save state during generation
+        setInterval(() => {
+            if (this.isGenerating && this.currentGeneration) {
+                this.saveGenerationState();
+            }
+        }, 1000);
+    }
+
+    handleGenerate() {
+        // Check if a book is selected
+        if (!navbar.selectedBook) {
+            alert('Seleziona prima un libro dalla libreria!');
+            return;
+        }
+
+        // Get selected chapters
+        const selectedChapters = navbar.getSelectedChaptersInfo();
+        
+        if (selectedChapters.length === 0) {
+            alert('Seleziona almeno un capitolo da generare!');
+            return;
+        }
+
+        // Show what will be generated
+        const bookName = navbar.selectedBook;
+        const chapterList = selectedChapters.map(ch => `Cap ${ch.number}: ${ch.title}`).join('\n');
+        
+        const message = `Genererai contenuto per:\n\nLibro: ${bookName}\n\nCapitoli selezionati:\n${chapterList}\n\nProcedere?`;
+        
+        if (confirm(message)) {
+            this.startGeneration(bookName, selectedChapters);
+        }
+    }
+
+    async startGeneration(bookName, chapters) {
+        // Set generation state
+        this.isGenerating = true;
+        this.currentGeneration = {
+            bookName: bookName,
+            chapters: chapters,
+            startTime: Date.now(),
+            status: 'starting'
+        };
+
+        // Save initial state
+        this.saveGenerationState();
+
+        // Update UI
+        this.generateBtn.disabled = true;
+        this.updateGenerationProgress('Iniziando generazione...', 0);
+
+        try {
+            // Prepare selected chapter IDs for the API
+            const selectedChapterIds = chapters.map(ch => ch.id);
+            
+            this.currentGeneration.status = 'processing';
+            this.updateGenerationProgress('Elaborando capitoli...', 30);
+
+            // Call the Gemini generation API
+            const response = await fetch('/api/gemini-generation', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    bookname: bookName,
+                    selectedChapters: selectedChapterIds
+                })
+            });
+
+            this.updateGenerationProgress('Ricevendo risposta da Gemini...', 70);
+
+            const result = await response.json();
+
+            if (result.success) {
+                this.currentGeneration.status = 'completed';
+                this.currentGeneration.result = result.data;
+                this.updateGenerationProgress('Completato!', 100);
+                
+                // Show results
+                this.displayGenerationResults(result.data);
+                this.showSuccess(`Generazione completata per ${result.data.total_chapters} capitoli!`);
+                
+                // Clear saved state since completed
+                this.clearGenerationState();
+            } else {
+                throw new Error(result.error || 'Unknown error in generation');
+            }
+            
+        } catch (error) {
+            console.error('Generation error:', error);
+            this.currentGeneration.status = 'error';
+            this.currentGeneration.error = error.message;
+            alert(`Errore durante la generazione: ${error.message}`);
+            this.clearGenerationState();
+        } finally {
+            // Reset state
+            this.isGenerating = false;
+            this.currentGeneration = null;
+            
+            // Re-enable button
+            this.generateBtn.disabled = false;
+            this.generateBtn.innerHTML = '<span class="icon">⚡</span> Genera';
+        }
+    }
+
+    displayGenerationResults(data) {
+        // Display results in the UI
+        if (this.resultContent) {
+            // Convert markdown to HTML using marked.js
+            const htmlContent = marked.parse(data.gemini_summary);
+            
+            // Add book and chapter information at the top
+            const bookInfo = `
+                <div style="background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%); padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #667eea;">
+                    <h4 style="margin: 0 0 10px 0; color: #2d3748;">📚 ${data.bookname}</h4>
+                    <p style="margin: 0; color: #4a5568; font-size: 14px;">
+                        <strong>Capitoli analizzati:</strong> ${data.total_chapters} 
+                        (${data.chapters.map(ch => `Cap ${ch.chapter_number}`).join(', ')})
+                    </p>
+                </div>
+            `;
+            
+            // Set the content
+            this.resultContent.innerHTML = bookInfo + htmlContent;
+            
+            // Scroll to results area
+            this.resultContent.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'start' 
+            });
+        }
+    }
+
+    updateGenerationProgress(message, percentage) {
+        this.generateBtn.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top: 2px solid white; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                <span>${message}</span>
+            </div>
+            <div style="width: 100%; height: 4px; background: rgba(255,255,255,0.3); border-radius: 2px; margin-top: 8px;">
+                <div style="width: ${percentage}%; height: 100%; background: white; border-radius: 2px; transition: width 0.3s ease;"></div>
+            </div>
+        `;
+    }
+
+    saveGenerationState() {
+        if (this.currentGeneration) {
+            localStorage.setItem('aiReadBrief_generationState', JSON.stringify({
+                ...this.currentGeneration,
+                timestamp: Date.now()
+            }));
+        }
+    }
+
+    restoreGenerationState() {
+        try {
+            const savedState = localStorage.getItem('aiReadBrief_generationState');
+            if (savedState) {
+                const state = JSON.parse(savedState);
+                const timeElapsed = Date.now() - state.timestamp;
+                
+                // If more than 5 minutes passed, consider it expired
+                if (timeElapsed > 5 * 60 * 1000) {
+                    this.clearGenerationState();
+                    return;
+                }
+
+                // Show recovery dialog
+                if (state.status === 'processing' || state.status === 'starting') {
+                    this.showRecoveryDialog(state);
+                } else if (state.status === 'completed' && state.result) {
+                    // Restore completed results
+                    this.displayGenerationResults(state.result);
+                    this.clearGenerationState();
+                }
+            }
+        } catch (error) {
+            console.error('Error restoring generation state:', error);
+            this.clearGenerationState();
+        }
+    }
+
+    showRecoveryDialog(state) {
+        const timeElapsed = Math.round((Date.now() - state.startTime) / 1000);
+        const message = `È stata rilevata una generazione interrotta per "${state.bookName}".\n\nTempo trascorso: ${timeElapsed}s\n\nVuoi riprovare la generazione?`;
+        
+        if (confirm(message)) {
+            // Restart generation
+            this.startGeneration(state.bookName, state.chapters);
+        } else {
+            this.clearGenerationState();
+        }
+    }
+
+    clearGenerationState() {
+        localStorage.removeItem('aiReadBrief_generationState');
+    }
+
+
+
+    showSuccess(message) {
+        // Create a success message
+        const successDiv = document.createElement('div');
+        successDiv.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #10b981;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 500;
+            z-index: 1001;
+            animation: slideIn 0.3s ease-out;
+        `;
+        successDiv.textContent = message;
+
+        document.body.appendChild(successDiv);
+
+        // Remove after 3 seconds
+        setTimeout(() => {
+            successDiv.remove();
+        }, 3000);
+    }
+}
+
+const generateController = new GenerateController();
+
 class ChapterPageController {
     constructor() {
         this.currentPage = 1;
         this.totalPages = 24; // Default value
-        this.bookname = 'alan'; // Default bookname
+        this.bookname = null; // Will be set when book is selected
         
         this.init();
     }
@@ -177,8 +930,10 @@ class ChapterPageController {
         this.updateDisplay();
         this.addEventListeners();
         
-        // Load first page image
-        this.updateImage();
+        // Load first page image only if bookname is set
+        if (this.bookname) {
+            this.updateImage();
+        }
     }
 
     removeEventListeners() {
@@ -260,6 +1015,11 @@ class ChapterPageController {
     }
 
     async extractChapters() {
+        if (!this.bookname) {
+            alert('Nessun libro selezionato');
+            return;
+        }
+        
         try {
             const response = await fetch('/api/analyze-chapter', {
                 method: 'POST',
@@ -458,7 +1218,7 @@ class ChapterPageController {
     }
 
     updateImage() {
-        if (!this.pageImage) return;
+        if (!this.pageImage || !this.bookname) return;
 
         // Carica l'immagine reale dal server
         const imageUrl = `/api/book-image/${this.bookname}/${this.currentPage}`;
@@ -501,6 +1261,11 @@ class ChapterPageController {
     }
 
     async initializeBookElaboration() {
+        if (!this.bookname) {
+            console.log('No bookname set, skipping book elaboration');
+            return;
+        }
+        
         try {
             const response = await fetch('/api/bookelaboration', {
                 method: 'POST',
@@ -571,28 +1336,20 @@ class ChapterPageController {
 
 // Initialize page controller when modal is opened
 let chapterPageController = null;
+window.chapterPageController = null;
 
-// Show modal immediately on page load
+// Initialize chapter modal functionality but don't show it immediately
 document.addEventListener('DOMContentLoaded', function() {
     const chapterModal = document.getElementById('chapter-confirmation');
 
     if (chapterModal) {
-        // Show modal immediately
-        chapterModal.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
-
-        // Initialize controller after a short delay to ensure elements are rendered
-        setTimeout(() => {
-            chapterPageController = new ChapterPageController();
-            // Avvia l'elaborazione del libro dopo aver inizializzato il controller
-            chapterPageController.initializeBookElaboration();
-        }, 100);
+        // Don't initialize controller until we have a book
 
         // Close modal functionality
         const closeBtn = document.querySelector('.close-modal-btn');
         if (closeBtn) {
             closeBtn.addEventListener('click', function() {
-                chapterModal.style.display = 'none';
+                chapterModal.classList.remove('show');
                 document.body.style.overflow = 'auto';
             });
         }
@@ -600,20 +1357,71 @@ document.addEventListener('DOMContentLoaded', function() {
         // Close on background click
         chapterModal.addEventListener('click', function(e) {
             if (e.target === chapterModal) {
-                chapterModal.style.display = 'none';
+                chapterModal.classList.remove('show');
                 document.body.style.overflow = 'auto';
             }
         });
 
         // Close on Escape key
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && chapterModal.style.display === 'flex') {
-                chapterModal.style.display = 'none';
+            if (e.key === 'Escape' && chapterModal.classList.contains('show')) {
+                chapterModal.classList.remove('show');
                 document.body.style.overflow = 'auto';
             }
         });
     }
 });
+
+// Function to clean workspace on startup
+async function cleanWorkspace() {
+    try {
+        const response = await fetch('/api/cleanup', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+            console.log('Workspace cleaned successfully');
+        } else {
+            console.error('Failed to clean workspace:', data.error);
+        }
+    } catch (error) {
+        console.error('Error cleaning workspace:', error);
+    }
+}
+
+// Function to show chapter modal with selected book
+function showChapterModal(bookname) {
+    const chapterModal = document.getElementById('chapter-confirmation');
+    
+    if (chapterModal) {
+        chapterModal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+
+        // Initialize or update controller
+        if (!window.chapterPageController) {
+            // Create controller for the first time
+            setTimeout(() => {
+                chapterPageController = new ChapterPageController();
+                window.chapterPageController = chapterPageController;
+                chapterPageController.bookname = bookname;
+                chapterPageController.initializeBookElaboration();
+            }, 100);
+        } else {
+            // Update existing controller with new book name
+            window.chapterPageController.bookname = bookname;
+            window.chapterPageController.currentPage = 1;
+            window.chapterPageController.updateDisplay();
+            window.chapterPageController.updateImage();
+            // Re-initialize book elaboration for the new book
+            window.chapterPageController.initializeBookElaboration();
+        }
+    }
+}
 
 async function startElaborateBook() {
   const response = await fetch("/api/bookelaboration", {
