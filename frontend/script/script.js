@@ -254,8 +254,119 @@ class ChapterPageController {
         }
     }
 
-    confirmpage(){
-        alert(this.currentPage);
+    confirmpage() {
+        console.log('Extracting chapters using page:', this.currentPage);
+        this.extractChapters();
+    }
+
+    async extractChapters() {
+        try {
+            const response = await fetch('/api/analyze-chapter', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 
+                    bookname: this.bookname,
+                    pageNumber: this.currentPage  // Usata come pagina di riferimento
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            
+            if (data.success) {
+                this.displayChaptersList(data);
+            } else {
+                throw new Error(data.error || 'Unknown error in chapter extraction');
+            }
+        } catch (error) {
+            console.error('Errore durante l\'estrazione dei capitoli:', error);
+            alert(`Errore nell'estrazione: ${error.message}`);
+        }
+    }
+
+    displayChaptersList(data) {
+        const resultContainer = document.getElementById('chapter-result');
+        if (resultContainer) {
+            // Store chapters data for later use
+            this.currentChaptersData = data;
+            
+            resultContainer.innerHTML = `
+                <div class="chapters-list">                   
+                    <div class="extraction-info">
+                    <strong>n chapters:</strong> ${data.totalChapters}
+                    </div>
+
+                    <div class="chapters-container">
+                        ${data.chapters.map((chapter, index) => `
+                            <div class="chapter-item">
+                                <div class="chapter-number">Cap. ${chapter.chapterNumber}</div>
+                                <div class="chapter-details">
+                                    <h5 class="chapter-title">${chapter.title}</h5>
+                                    <div class="chapter-info">
+                                        <span class="page-range">Pagine ${chapter.startPage}-${chapter.endPage}</span>
+                                        <span class="page-count">(${chapter.pageCount} pagine)</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+
+            // Connect Save button after displaying results
+            this.connectSaveButton();
+            
+            // Scroll to results
+            resultContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    }
+
+    connectSaveButton() {
+        const saveBtn = document.getElementById('save-chapters-btn');
+        if (saveBtn && !saveBtn.hasAttribute('data-connected')) {
+            saveBtn.addEventListener('click', () => this.saveChapters());
+            saveBtn.setAttribute('data-connected', 'true');
+        }
+    }
+
+    async saveChapters() {
+        if (!this.currentChaptersData) {
+            alert('Nessun dato sui capitoli disponibile. Estrai prima i capitoli.');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/save-chapters', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 
+                    bookname: this.bookname,
+                    chaptersData: this.currentChaptersData
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            
+            if (result.success) {
+                alert(`PDF diviso con successo in ${result.totalChapters} capitoli!\nCartella: ${result.outputDirectory}`);
+            } else {
+                throw new Error(result.error || 'Errore sconosciuto');
+            }
+        } catch (error) {
+            console.error('Errore durante il salvataggio:', error);
+            alert(`Errore nel salvataggio: ${error.message}`);
+        }
     }
 
     updateTotalPages(totalPages) {
@@ -388,6 +499,74 @@ class ChapterPageController {
             this.pageInput.value = this.currentPage;
         }
     }
+
+    async initializeBookElaboration() {
+        try {
+            const response = await fetch('/api/bookelaboration', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ bookname: this.bookname })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            
+            if (data.success) {
+                this.totalPages = data.pages;
+                console.log(`Book elaborated successfully. Total pages: ${this.totalPages}`);
+                this.updatePageNumberDisplay();
+            } else {
+                throw new Error(data.error || 'Unknown error');
+            }
+        } catch (error) {
+            console.error('Errore durante l\'elaborazione del libro:', error);
+            // Use default values if elaboration fails
+            console.log('Using default values due to elaboration error');
+        }
+    }
+
+    updatePageNumberDisplay() {
+        // Update the "of 24" part in the page number display
+        const pageNumberDiv = document.querySelector('#page-number');
+        if (pageNumberDiv) {
+            pageNumberDiv.innerHTML = `Page <input type="number" min="1" max="${this.totalPages}" value="${this.currentPage}"> of ${this.totalPages}`;
+            
+            // Re-get the input reference since we recreated it
+            this.pageInput = document.querySelector('#page-number input[type="number"]');
+            if (this.pageInput) {
+                this.pageInput.min = 1;
+                this.pageInput.max = this.totalPages;
+                this.pageInput.value = this.currentPage;
+                this.pageInput.step = 1;
+                
+                // Re-add the keydown listener for the new input
+                this.pageInput.addEventListener('keydown', (e) => {
+                    if ([8, 9, 27, 13, 35, 36, 37, 39, 46].indexOf(e.keyCode) !== -1 ||
+                        (e.ctrlKey && [65, 67, 86, 88, 90].indexOf(e.keyCode) !== -1)) {
+                        return;
+                    }
+                    if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
+                        e.preventDefault();
+                    }
+                });
+                
+                // Re-add input event listeners
+                this.pageInput.addEventListener('input', this.inputHandler);
+                this.pageInput.addEventListener('change', this.inputChangeHandler);
+                this.pageInput.addEventListener('blur', this.inputBlurHandler);
+            }
+        }
+        
+        // Update slider max value
+        if (this.pageSlider) {
+            this.pageSlider.max = this.totalPages;
+        }
+    }
 }
 
 // Initialize page controller when modal is opened
@@ -406,7 +585,7 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => {
             chapterPageController = new ChapterPageController();
             // Avvia l'elaborazione del libro dopo aver inizializzato il controller
-            initializeBookElaboration();
+            chapterPageController.initializeBookElaboration();
         }, 100);
 
         // Close modal functionality
@@ -453,16 +632,6 @@ async function startElaborateBook() {
 
 
   return data.pages;
-}
-
-async function initializeBookElaboration() {
-  try {
-    const numberOfPages = await startElaborateBook();
-    aggiornaNumeroPagine(numberOfPages);
-    chapterPageController.updateImage();
-  } catch (error) {
-    console.error('Errore durante l\'elaborazione del libro:', error);
-  }
 }
 
 async function aggiornaNumeroPagine(numberOfPages) {

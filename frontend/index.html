@@ -1,12 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Read Brief For Dyslexia</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2d3748',
+                        ground: '#d2d2d2'
+                    },
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="style/styles.css">
-    <meta charset="UTF-8">
-    <title>Title</title>
 </head>
 <body>
     <div class="mainpage">
@@ -114,7 +137,7 @@
                     </div>
                 </div>
                 <div class="chapter-confirmation-buttons">
-                     <button class="btn btn-primary" id="chapter-delete-button">
+                     <button class="btn btn-primary" id="save-chapters-btn">
                         Save
                      </button>
                 </div>

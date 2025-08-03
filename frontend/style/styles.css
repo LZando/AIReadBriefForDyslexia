@@ -1,5 +1,5 @@
 /* ==========================================================================
-   CSS VARIABLES & ROOT STYLES
+   CUSTOM CSS VARIABLES & COMPONENTS (for compatibility with Tailwind)
    ========================================================================== */
 
 :root {
@@ -337,6 +337,104 @@ body {
 }
 
 /* ==========================================================================
+   FORM STYLES
+   ========================================================================== */
+
+#add-library-form {
+    padding: 0 24px 24px 24px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #374151;
+    font-size: 14px;
+}
+
+.form-group input[type="text"] {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    box-sizing: border-box;
+}
+
+.form-group input[type="text"]:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
+}
+
+.form-group input[type="file"] {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px dashed #d1d5db;
+    border-radius: 8px;
+    background-color: #f9fafb;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+    box-sizing: border-box;
+}
+
+.form-group input[type="file"]:hover {
+    border-color: var(--primary-color);
+    background-color: #f0f9ff;
+}
+
+.form-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 32px;
+}
+
+/* ==========================================================================
+   LIBRARY ITEM STYLES
+   ========================================================================== */
+
+.library-item {
+    background-color: white;
+    border-radius: 8px;
+    padding: 16px;
+    margin: 8px 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.library-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.library-item-content h4 {
+    margin: 0 0 4px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.library-item-content p {
+    margin: 0 0 4px 0;
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.library-item-content small {
+    font-size: 11px;
+    color: #9ca3af;
+}
+
+/* Keep custom modal and chapter-specific styles that Tailwind doesn't cover */
+
+/* ==========================================================================
    CHAPTER MODAL STYLES
    ========================================================================== */
 
@@ -421,7 +519,6 @@ body {
     object-fit: contain;
     border-radius: 12px;
 }
-
 
 .chapter-choser {
     display: flex;
@@ -610,143 +707,157 @@ body {
     padding: 1.5rem;
     margin-bottom: 1.5rem;
     backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
     z-index: 1;
+    overflow-y: auto;
+    max-height: 100%;
 }
 
-.placeholder-content {
+/* ==========================================================================
+   CHAPTERS LIST STYLES (inside result container)
+   ========================================================================== */
+
+.chapters-list {
+    height: 100%;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    color: #718096;
-    text-align: center;
 }
 
-.placeholder-content p {
-    margin: 0;
+.chapters-list h4 {
+    margin: 0 0 1.5rem 0;
+    color: var(--primary-color);
+    font-size: 1.25rem;
+    font-weight: 600;
+    text-align: center;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+}
+
+.extraction-info {
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    border-left: 4px solid var(--primary-color);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    font-size: 0.875rem;
+    color: #374151;
+    font-weight: 500;
+}
+
+.chapters-container {
+    flex: 1;
+    overflow-y: auto;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    min-height: 0;
+}
+
+.chapter-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.chapter-item:last-child {
+    border-bottom: none;
+}
+
+.chapter-number {
+    background: var(--primary-color);
+    color: white;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    min-width: 65px;
+    text-align: center;
+    margin-right: 1rem;
+    flex-shrink: 0;
+}
+
+.chapter-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.chapter-title {
+    margin: 0 0 0.5rem 0;
+    color: #374151;
     font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+
+.chapter-info {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.8rem;
+    color: #6b7280;
+    flex-wrap: wrap;
+}
+
+.page-range {
+    font-weight: 500;
+    color: #4b5563;
+}
+
+.page-count {
+    color: #9ca3af;
     font-style: italic;
 }
 
-/* ==========================================================================
-   FORM STYLES
-   ========================================================================== */
-
-#add-library-form {
-    padding: 0 24px 24px 24px;
+/* Custom scrollbar for chapters container */
+.chapters-container::-webkit-scrollbar {
+    width: 6px;
 }
 
-.form-group {
-    margin-bottom: 20px;
+.chapters-container::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 3px;
 }
 
-.form-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 500;
-    color: #374151;
-    font-size: 14px;
+.chapters-container::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 3px;
 }
 
-.form-group input[type="text"] {
-    width: 100%;
-    padding: 12px 16px;
-    border: 2px solid #e5e7eb;
-    border-radius: 8px;
-    font-size: 14px;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    box-sizing: border-box;
+/* Firefox scrollbar */
+.chapters-container {
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-color) rgba(0, 0, 0, 0.05);
 }
 
-.form-group input[type="text"]:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
+/* Custom scrollbar for result container */
+.chapter-resut-container::-webkit-scrollbar {
+    width: 8px;
 }
 
-.form-group input[type="file"] {
-    width: 100%;
-    padding: 12px 16px;
-    border: 2px dashed #d1d5db;
-    border-radius: 8px;
-    background-color: #f9fafb;
-    cursor: pointer;
-    transition: border-color 0.2s ease, background-color 0.2s ease;
-    box-sizing: border-box;
+.chapter-resut-container::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
 }
 
-.form-group input[type="file"]:hover {
-    border-color: var(--primary-color);
-    background-color: #f0f9ff;
-}
-
-.form-actions {
-    display: flex;
-    gap: 12px;
-    justify-content: flex-end;
-    margin-top: 32px;
+.chapter-resut-container::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
 }
 
 /* ==========================================================================
-   LIBRARY ITEM STYLES
-   ========================================================================== */
-
-.library-item {
-    background-color: white;
-    border-radius: 8px;
-    padding: 16px;
-    margin: 8px 12px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    transition: all 0.2s ease;
-    cursor: pointer;
-}
-
-.library-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.library-item-content h4 {
-    margin: 0 0 4px 0;
-    font-size: 14px;
-    font-weight: 600;
-    color: #1f2937;
-}
-
-.library-item-content p {
-    margin: 0 0 4px 0;
-    font-size: 12px;
-    color: #6b7280;
-}
-
-.library-item-content small {
-    font-size: 11px;
-    color: #9ca3af;
-}
-
-/* ==========================================================================
-   ANIMATIONS & KEYFRAMES
+   KEYFRAMES FOR ANIMATIONS
    ========================================================================== */
 
 @keyframes modalSlideIn {
     from {
         opacity: 0;
-        transform: translateY(-50px) scale(0.95);
+        transform: scale(0.9) translateY(-20px);
     }
     to {
         opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateX(100%);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
+        transform: scale(1) translateY(0);
     }
 }
