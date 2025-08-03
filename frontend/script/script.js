@@ -176,6 +176,9 @@ class ChapterPageController {
 
         this.updateDisplay();
         this.addEventListeners();
+        
+        // Load first page image
+        this.updateImage();
     }
 
     removeEventListeners() {
@@ -188,6 +191,9 @@ class ChapterPageController {
         }
         if (this.pageSlider && this.sliderInputHandler) {
             this.pageSlider.removeEventListener('input', this.sliderInputHandler);
+        }
+        if (this.pageConfirmBtn && this.pageConfirmHandler) {
+            this.pageConfirmBtn.removeEventListener('click', this.pageConfirmHandler);
         }
         if (this.pageInput) {
             if (this.inputHandler) {
@@ -233,7 +239,7 @@ class ChapterPageController {
 
 
         if (this.prevBtn) {
-            this.prevBtn.addEventListener('click', this.prevClickHandler);e
+            this.prevBtn.addEventListener('click', this.prevClickHandler);
         }
         if (this.nextBtn) {
             this.nextBtn.addEventListener('click', this.nextClickHandler);
@@ -353,6 +359,13 @@ class ChapterPageController {
         this.pageImage.onload = () => {
             this.pageImage.style.opacity = '1';
             console.log(`Immagine caricata con successo per la pagina ${this.currentPage}`);
+        };
+        
+        this.pageImage.onerror = () => {
+            console.error(`Errore nel caricamento dell'immagine per la pagina ${this.currentPage}`);
+            // Fallback a un'immagine placeholder
+            this.pageImage.src = `https://via.placeholder.com/400x600/334155/ffffff?text=Page+${this.currentPage}+(Not+Found)`;
+            this.pageImage.style.opacity = '1';
         };
     }
 
