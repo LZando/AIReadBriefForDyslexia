@@ -12,7 +12,24 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
-    <div class="bg-background h-[100vh] w-[100%] p-5 flex gap-10">
+    <!-- Mobile Header (hidden on desktop) -->
+    <div class="lg:hidden bg-box fixed top-0 left-0 right-0 z-50 p-4 flex items-center justify-between shadow-lg">
+        <div class="flex items-center gap-3">
+            <img class="w-10 h-10 rounded-lg object-cover" src="assets/logos/dixylogo.png">
+            <h1 class="text-primary font-bold text-lg">AI Read Brief</h1>
+        </div>
+        <div class="flex items-center gap-3">
+            <button id="mobile-library-btn" class="flex justify-center items-center w-10 h-10 rounded-lg bg-primary text-white border-0 cursor-pointer transition-all duration-300 hover:bg-gray-800">
+                <span class="text-lg font-bold">▤</span>
+            </button>
+            <button id="mobile-chapters-btn" class="flex justify-center items-center w-10 h-10 rounded-lg bg-primary text-white border-0 cursor-pointer transition-all duration-300 hover:bg-gray-800">
+                <span class="text-lg font-bold">☰</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Desktop Layout -->
+    <div class="bg-background h-[100vh] w-[100%] p-5 flex gap-10 lg:flex hidden">
         <div class="flex rounded-[20px] h-full gap-10">
             <!-- Main Menu Icons -->
             <div class="bg-box w-[8rem] flex flex-col items-center rounded-[20px] p-4 relative overflow-hidden">
@@ -48,7 +65,7 @@
             <div class="flex items-center justify-center h-full text-gray-400">
               <p class="text-center">
                 <span class="text-2xl block mb-2">📄</span>
-                Seleziona un libro e alcuni capitoli, poi clicca "Genera" per vedere il riassunto qui
+                Select a book and some chapters, then click "Generate" to see the summary here.
               </p>
             </div>
           </div>
@@ -69,6 +86,69 @@
             </div>
             <div id="navbar-chapters" class="flex-1 p-4 overflow-y-auto">
                 <!-- Chapters will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Layout -->
+    <div class="lg:hidden bg-background min-h-screen pt-20">
+        <!-- Mobile Library Drawer -->
+        <div id="mobile-library-drawer" class="mobile-drawer-width fixed inset-y-0 left-0 z-40 w-80 bg-box transform -translate-x-full transition-transform duration-300 ease-in-out shadow-xl">
+            <div class="h-full flex flex-col">
+                <div class="flex items-center justify-between p-4 bg-gradient-to-br from-primary to-gray-800 text-white">
+                    <h3 class="font-semibold text-lg">Library</h3>
+                    <button id="close-mobile-library" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors">
+                        <span class="text-lg font-bold">×</span>
+                    </button>
+                </div>
+                <div id="mobile-library-container" class="flex-1 p-4 overflow-y-auto">
+                    <!-- Library items will be populated here -->
+                </div>
+                <div class="p-4 border-t border-gray-200 bg-white/50">
+                    <p id="mobile-add-library" class="text-sm font-medium m-0 cursor-pointer py-3 px-4 rounded-lg bg-gradient-to-br from-primary to-gray-800 text-white transition-all duration-300 text-center">+ Add library</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Chapters Drawer -->
+        <div id="mobile-chapters-drawer" class="mobile-drawer-width fixed inset-y-0 right-0 z-40 w-80 bg-box transform translate-x-full transition-transform duration-300 ease-in-out shadow-xl">
+            <div class="h-full flex flex-col">
+                <div class="flex items-center justify-between p-4 bg-gradient-to-br from-primary to-gray-800 text-white">
+                    <h3 class="font-semibold text-lg">Chapters</h3>
+                    <button id="close-mobile-chapters" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors">
+                        <span class="text-lg font-bold">×</span>
+                    </button>
+                </div>
+                <div id="mobile-navbar-chapters" class="flex-1 p-4 overflow-y-auto">
+                    <!-- Chapters will be populated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Backdrop -->
+        <div id="mobile-backdrop" class="fixed inset-0 z-30 bg-black/50 opacity-0 pointer-events-none transition-opacity duration-300"></div>
+
+        <!-- Mobile Main Content -->
+        <div class="p-4">
+            <div class="bg-white rounded-2xl shadow-lg min-h-[calc(100vh-6rem)] flex flex-col">
+                <!-- Mobile Result Area -->
+                <div id="mobile-result-content" class="flex-1 p-4 border border-gray-200 rounded-xl overflow-y-auto text-gray-700 leading-relaxed mb-4 bg-gray-50/50 min-h-[60vh]">
+                    <div class="flex items-center justify-center h-full text-gray-400">
+                        <div class="text-center">
+                            <span class="text-3xl block mb-3">📄</span>
+                            <p class="text-center text-sm font-medium mb-2">Seleziona un libro e alcuni capitoli</p>
+                            <p class="text-xs text-gray-500">Poi clicca "Genera" per vedere il riassunto</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Mobile Generate Button -->
+                <div class="flex justify-center items-center p-4">
+                    <button id="mobile-genera-btn" class="w-full max-w-xs inline-flex items-center justify-center px-6 py-4 rounded-2xl font-semibold text-lg cursor-pointer transition-all duration-200 shadow-lg bg-primary text-white gap-3 hover:bg-gray-700 active:scale-95">
+                        <span class="text-xl">⚡</span>
+                        Genera
+                    </button>
+                </div>
             </div>
         </div>
     </div>

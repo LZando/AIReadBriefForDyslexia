@@ -168,7 +168,6 @@ class NavBar {
     this.loadBookChapters(bookId);  // Use bookId instead of bookName
     
     // Show success message
-    this.showBookSelection(`Selected: ${bookElement.querySelector('.book-title').textContent}`);
   }
 
   showBookSelection(message) {
@@ -230,14 +229,9 @@ class NavBar {
     
     if (chapters.length === 0) {
       this.menuChapters.innerHTML = `
-        <div class="chapters-header p-4 border-b border-gray-200 bg-white/50">
-          <h3 class="text-primary text-sm font-semibold m-0 text-center">Chapters</h3>
-        </div>
         <div class="flex items-center justify-center h-full text-gray-400 p-6">
           <div class="text-center">
-            <span class="text-3xl block mb-3">📖</span>
             <p class="text-sm font-medium mb-2">No chapters available</p>
-            <p class="text-xs text-gray-500">Select a book from the library to see its chapters</p>
           </div>
         </div>
       `;
@@ -247,13 +241,10 @@ class NavBar {
     const chaptersHTML = `
       <div class="chapters-header p-4 border-b border-gray-200 bg-white/50">
         <h3 class="text-primary text-sm font-semibold m-0 mb-2 text-center">Chapters (${chapters.length})</h3>
-        <div class="chapters-actions flex justify-center">
-          <button class="btn-small clear-selection bg-gradient-to-br from-primary to-gray-800 text-white border-0 py-1.5 px-3 rounded-md text-xs font-medium cursor-pointer transition-all duration-300 shadow-sm hover:from-gray-800 hover:to-gray-700 hover:-translate-y-0.5 hover:shadow-md">Clear</button>
-        </div>
       </div>
       <div class="chapters-container flex-1 p-4 overflow-y-auto min-h-0">
         ${chapters.map((chapter, index) => `
-          <div class="chapter-item relative overflow-hidden flex items-center p-3 mb-2 rounded-xl cursor-pointer bg-white/60 border border-transparent transition-all duration-300 hover:bg-white/90 hover:border-primary hover:-translate-y-0.5 hover:shadow-md ${this.selectedChapters.has(chapter.id) ? 'selected bg-gradient-to-br from-primary to-gray-800 text-white border-white/20' : ''}"
+          <div class="chapter-item relative overflow-hidden flex items-center p-3 mb-2 rounded-xl cursor-pointer bg-white/60 border border-transparent transition-all duration-300 select-none hover:bg-white/90  ${this.selectedChapters.has(chapter.id) ? 'selected bg-gradient-to-br from-primary to-gray-800 text-white border-white/20' : ''}"
                data-chapter-id="${chapter.id}"
                data-chapter-index="${index}"
                data-chapter-number="${chapter.number}">
@@ -754,7 +745,13 @@ class GenerateController {
             
             // Re-enable button
             this.generateBtn.disabled = false;
-            this.generateBtn.innerHTML = '<span class="icon">⚡</span> Genera';
+            this.generateBtn.innerHTML = '<span class="text-xl">⚡</span> Genera';
+            
+            // Sync reset to mobile button
+            if (window.mobileController && window.mobileController.mobileGeneraBtn) {
+                window.mobileController.mobileGeneraBtn.disabled = false;
+                window.mobileController.mobileGeneraBtn.innerHTML = '<span class="text-xl">⚡</span> Genera';
+            }
         }
     }
 
@@ -775,8 +772,15 @@ class GenerateController {
                 </div>
             `;
             
-            // Set the content
-            this.resultContent.innerHTML = bookInfo + htmlContent;
+            const fullContent = bookInfo + htmlContent;
+            
+            // Set the content for desktop
+            this.resultContent.innerHTML = fullContent;
+            
+            // Sync content to mobile
+            if (window.mobileController) {
+                window.mobileController.syncResultContent(fullContent);
+            }
             
             // Scroll to results area
             this.resultContent.scrollIntoView({ 
@@ -787,7 +791,7 @@ class GenerateController {
     }
 
     updateGenerationProgress(message, percentage) {
-        this.generateBtn.innerHTML = `
+        const progressHTML = `
             <div style="display: flex; align-items: center; gap: 8px;">
                 <div style="width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top: 2px solid white; border-radius: 50%; animation: spin 1s linear infinite;"></div>
                 <span>${message}</span>
@@ -796,6 +800,13 @@ class GenerateController {
                 <div style="width: ${percentage}%; height: 100%; background: white; border-radius: 2px; transition: width 0.3s ease;"></div>
             </div>
         `;
+        
+        this.generateBtn.innerHTML = progressHTML;
+        
+        // Sync progress to mobile button
+        if (window.mobileController && window.mobileController.mobileGeneraBtn) {
+            window.mobileController.mobileGeneraBtn.innerHTML = progressHTML;
+        }
     }
 
     saveGenerationState() {
@@ -1458,4 +1469,165 @@ async function aggiornaNumeroPagine(numberOfPages) {
     // Ricollega gli event listener al nuovo input
     chapterPageController.reconnectInputListeners();
   }
+}
+
+// Mobile Controller for responsive design
+class MobileController {
+  constructor() {
+    this.mobileLibraryBtn = document.getElementById('mobile-library-btn');
+    this.mobileChaptersBtn = document.getElementById('mobile-chapters-btn');
+    this.mobileLibraryDrawer = document.getElementById('mobile-library-drawer');
+    this.mobileChaptersDrawer = document.getElementById('mobile-chapters-drawer');
+    this.mobileBackdrop = document.getElementById('mobile-backdrop');
+    this.closeMobileLibrary = document.getElementById('close-mobile-library');
+    this.closeMobileChapters = document.getElementById('close-mobile-chapters');
+    this.mobileAddLibrary = document.getElementById('mobile-add-library');
+    this.mobileGeneraBtn = document.getElementById('mobile-genera-btn');
+    this.mobileLibraryContainer = document.getElementById('mobile-library-container');
+    this.mobileChaptersContainer = document.getElementById('mobile-navbar-chapters');
+    this.mobileResultContent = document.getElementById('mobile-result-content');
+    
+    this.init();
+  }
+
+  init() {
+    // Library drawer events
+    if (this.mobileLibraryBtn) {
+      this.mobileLibraryBtn.addEventListener('click', () => this.openLibraryDrawer());
+    }
+    if (this.closeMobileLibrary) {
+      this.closeMobileLibrary.addEventListener('click', () => this.closeLibraryDrawer());
+    }
+
+    // Chapters drawer events
+    if (this.mobileChaptersBtn) {
+      this.mobileChaptersBtn.addEventListener('click', () => this.openChaptersDrawer());
+    }
+    if (this.closeMobileChapters) {
+      this.closeMobileChapters.addEventListener('click', () => this.closeChaptersDrawer());
+    }
+
+    // Backdrop close
+    if (this.mobileBackdrop) {
+      this.mobileBackdrop.addEventListener('click', () => this.closeAllDrawers());
+    }
+
+    // Add library button
+    if (this.mobileAddLibrary) {
+      this.mobileAddLibrary.addEventListener('click', () => {
+        this.closeAllDrawers();
+        if (window.libraryModal) {
+          window.libraryModal.handleAddButtonClick();
+        }
+      });
+    }
+
+    // Generate button
+    if (this.mobileGeneraBtn && window.generateController) {
+      this.mobileGeneraBtn.addEventListener('click', () => {
+        if (window.generateController) {
+          window.generateController.handleGenerate();
+        }
+      });
+    }
+  }
+
+  openLibraryDrawer() {
+    this.closeChaptersDrawer();
+    if (this.mobileLibraryDrawer) {
+      this.mobileLibraryDrawer.classList.add('mobile-drawer-open');
+    }
+    if (this.mobileBackdrop) {
+      this.mobileBackdrop.classList.add('mobile-backdrop-open');
+    }
+    // Copy library content to mobile
+    this.syncLibraryContent();
+  }
+
+  closeLibraryDrawer() {
+    if (this.mobileLibraryDrawer) {
+      this.mobileLibraryDrawer.classList.remove('mobile-drawer-open');
+    }
+    if (this.mobileBackdrop) {
+      this.mobileBackdrop.classList.remove('mobile-backdrop-open');
+    }
+  }
+
+  openChaptersDrawer() {
+    this.closeLibraryDrawer();
+    if (this.mobileChaptersDrawer) {
+      this.mobileChaptersDrawer.classList.add('mobile-drawer-open');
+    }
+    if (this.mobileBackdrop) {
+      this.mobileBackdrop.classList.add('mobile-backdrop-open');
+    }
+    // Copy chapters content to mobile
+    this.syncChaptersContent();
+  }
+
+  closeChaptersDrawer() {
+    if (this.mobileChaptersDrawer) {
+      this.mobileChaptersDrawer.classList.remove('mobile-drawer-open');
+    }
+    if (this.mobileBackdrop) {
+      this.mobileBackdrop.classList.remove('mobile-backdrop-open');
+    }
+  }
+
+  closeAllDrawers() {
+    this.closeLibraryDrawer();
+    this.closeChaptersDrawer();
+  }
+
+  syncLibraryContent() {
+    if (window.navbar && this.mobileLibraryContainer) {
+      const desktopContent = document.getElementById('library-container');
+      if (desktopContent) {
+        this.mobileLibraryContainer.innerHTML = desktopContent.innerHTML;
+        
+        // Re-add event listeners for mobile library items
+        this.mobileLibraryContainer.querySelectorAll('.library-book-item').forEach(item => {
+          item.addEventListener('click', () => {
+            if (window.navbar) {
+              window.navbar.selectBook(item);
+              this.closeLibraryDrawer();
+            }
+          });
+        });
+      }
+    }
+  }
+
+  syncChaptersContent() {
+    if (window.navbar && this.mobileChaptersContainer) {
+      const desktopContent = document.getElementById('navbar-chapters');
+      if (desktopContent) {
+        this.mobileChaptersContainer.innerHTML = desktopContent.innerHTML;
+        
+        // Re-add event listeners for mobile chapter items
+        this.mobileChaptersContainer.querySelectorAll('.chapter-item').forEach(item => {
+          item.addEventListener('click', (e) => {
+            if (window.navbar) {
+              window.navbar.selectChapter(item, e);
+            }
+          });
+        });
+      }
+    }
+  }
+
+  syncResultContent(content) {
+    if (this.mobileResultContent) {
+      this.mobileResultContent.innerHTML = content;
+    }
+  }
+}
+
+// Initialize mobile controller when page loads
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', function() {
+    window.mobileController = new MobileController();
+  });
+} else {
+  window.mobileController = new MobileController();
 }
