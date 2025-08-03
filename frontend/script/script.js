@@ -233,7 +233,7 @@ class ChapterPageController {
 
 
         if (this.prevBtn) {
-            this.prevBtn.addEventListener('click', this.prevClickHandler);
+            this.prevBtn.addEventListener('click', this.prevClickHandler);e
         }
         if (this.nextBtn) {
             this.nextBtn.addEventListener('click', this.nextClickHandler);
