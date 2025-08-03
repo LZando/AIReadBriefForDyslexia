@@ -35,11 +35,11 @@
             <div class="bg-box w-[8rem] flex flex-col items-center rounded-[20px] p-4 relative overflow-hidden">
                 <img class="w-24 h-24 mb-6 rounded-lg object-cover" src="assets/logos/dixylogo.png">
                 
-                <div class="flex justify-center items-center w-12 h-12 mt-5 rounded-xl bg-primary border border-black/10 transition-all duration-300 cursor-pointer select-none shadow-lg hover:bg-gray-800 hover:-translate-y-0.5 hover:shadow-xl" id="library-menu-button">
+                <div class="flex justify-center items-center w-12 h-12 mt-5 rounded-xl bg-primary border border-black/10 transition-all duration-300 cursor-pointer select-none shadow-lg hover:bg-gray-800" id="library-menu-button">
                     <span class="text-white text-xl font-bold">▤</span>
                 </div>
                 
-                <div class="flex justify-center items-center w-12 h-12 mt-5 rounded-xl bg-primary border border-black/10 transition-all duration-300 cursor-pointer select-none shadow-lg hover:bg-gray-800 hover:-translate-y-0.5 hover:shadow-xl" id="chapter-menu-button">
+                <div class="flex justify-center items-center w-12 h-12 mt-5 rounded-xl bg-primary border border-black/10 transition-all duration-300 cursor-pointer select-none shadow-lg hover:bg-gray-800" id="chapter-menu-button">
                     <span class="text-white text-xl font-bold">☰</span>
                 </div>
             </div>
@@ -178,7 +178,7 @@
                         <span class="text-lg">✕</span>
                         Cancel
                     </button>
-                    <button type="submit" class="inline-flex items-center justify-center px-6 py-3 border-0 rounded-2xl font-semibold text-base cursor-pointer transition-all duration-200 shadow-lg bg-primary text-white gap-2 hover:-translate-y-0.5 hover:shadow-xl hover:bg-gray-700">
+                    <button type="submit" class="inline-flex items-center justify-center px-6 py-3 border-0 rounded-2xl font-semibold text-base cursor-pointer transition-all duration-200 shadow-lg bg-primary text-white gap-2 hover:bg-gray-700">
                         Add
                     </button>
                 </div>
@@ -189,7 +189,7 @@
     <!-- Chapter Confirmation Modal -->
     <div id="chapter-confirmation" class="modal-chapter">
         <div class="chapter-container">
-            <div class="chapter-page-selector">
+            <div class="chapter-page-selector bg-background">
                 <div class="chapter-header">
                     <h2>Choose a page that contains a chapter and confirm.</h2>
                     <button class="inline-flex items-center justify-center w-10 h-10 p-0 rounded-full border-2 border-primary font-semibold text-lg cursor-pointer transition-all duration-200 bg-gray-50 text-primary hover:bg-primary hover:text-white min-w-[40px]">
@@ -200,7 +200,7 @@
                     <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTN59-ODQizLkfZ0BZNpcKNjn6mQu39WRk28w&s" alt="Chapter Page Preview">
                 </div>
                 <div class="chapter-choser">
-                    <button class="w-12 h-12 rounded-xl bg-white/90 border-0 flex items-center justify-center cursor-pointer transition-all duration-200 backdrop-blur-md hover:bg-white hover:scale-110 hover:shadow-lg">
+                    <button class="prev-btn w-12 h-12 rounded-xl bg-white/90 border border-b-primary flex items-center justify-center cursor-pointer transition-all duration-200 backdrop-blur-md hover:bg-white">
                         <span class="text-2xl font-bold text-primary">‹</span>
                     </button>
                     <div class="page-info">
@@ -209,7 +209,7 @@
                         </div>
                         <input type="range" class="page-slider" min="1" max="24" value="14">
                     </div>
-                    <button class="w-12 h-12 rounded-xl bg-white/90 border-0 flex items-center justify-center cursor-pointer transition-all duration-200 backdrop-blur-md hover:bg-white hover:scale-110 hover:shadow-lg">
+                    <button class="next-btn w-12 h-12 rounded-xl bg-white/90 border border-b-primary flex items-center justify-center cursor-pointer transition-all duration-200 backdrop-blur-md hover:bg-white">
                         <span class="text-2xl font-bold text-primary">›</span>
                     </button>
                 </div>
@@ -222,7 +222,7 @@
                     <button class="inline-flex items-center justify-center px-6 py-3 border-0 rounded-2xl font-semibold text-base cursor-pointer transition-all duration-200 shadow-lg bg-primary text-white gap-2 hover:-translate-y-0.5 hover:shadow-xl hover:bg-gray-700" id="extractChaptersBtn">Extract</button>
                 </div>
             </div>
-            <div class="chapter-result">
+            <div class="chapter-result bg-background">
                 <div class="result-header">
                     <h3>Extracted Chapters</h3>
                 </div>

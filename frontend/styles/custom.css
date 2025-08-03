@@ -114,7 +114,6 @@
 }
 
 .chapter-page-selector {
-    background: var(--ground);
     flex: 2;
     border-radius: 20px;
     display: flex;
@@ -317,7 +316,6 @@
 }
 
 .chapter-result {
-    background: var(--ground);
     flex: 1;
     border-radius: 20px;
     display: flex;

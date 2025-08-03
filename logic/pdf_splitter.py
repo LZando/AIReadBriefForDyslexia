@@ -11,13 +11,13 @@ def split_pdf_into_chapters(bookname, chapters_data):
     """
     try:
         # Percorso del PDF originale
-        pdf_path = Path('bookstore') / f'{bookname}.pdf'
+        pdf_path = Path('booktemp') / f'{bookname}.pdf'
         
         if not pdf_path.exists():
             raise FileNotFoundError(f"PDF non trovato: {pdf_path}")
         
         # Crea la cartella di destinazione
-        output_dir = Path('bookstore') / 'elaboratebook' / bookname
+        output_dir = Path('booktemp') / 'elaboratebook' / bookname
         output_dir.mkdir(parents=True, exist_ok=True)
         
         # Apri il documento PDF

@@ -78,15 +78,12 @@ class NavBar {
     }
 
     this.libraryContainer.innerHTML = books.map(book => `
-      <div class="library-book-item relative overflow-hidden flex items-center p-3 mb-2 rounded-xl cursor-pointer bg-white/60 border border-transparent transition-all duration-300 hover:bg-white/90 hover:border-primary hover:-translate-y-0.5 hover:shadow-md ${this.selectedBook === book.id ? 'selected bg-gradient-to-br from-primary to-gray-800 text-white border-white/20' : ''}"
+      <div class="library-book-item relative overflow-hidden flex items-center p-3 mb-2 rounded-xl cursor-pointer bg-white/60 border border-transparent transition-all duration-300 hover:bg-white/90 hover:border-primary ${this.selectedBook === book.id ? 'selected bg-gradient-to-br from-primary to-gray-800 text-white border-white/20' : ''}"
            data-book-id="${book.id}" 
            data-book-name="${book.displayName}">
         <div class="library-shimmer absolute top-0 left-[-100%] w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent transition-all duration-700"></div>
         <div class="book-info flex-1 min-w-0 relative z-10">
           <h4 class="book-title text-sm font-semibold m-0 mb-1 leading-tight overflow-hidden text-ellipsis whitespace-nowrap transition-colors duration-300 ${this.selectedBook === book.id ? 'text-white' : 'text-gray-800 hover:text-primary'}">${book.displayName}</h4>
-        </div>
-        <div class="book-status text-xs font-bold min-w-5 text-center relative z-10 transition-colors duration-300 ${this.selectedBook === book.id ? 'text-green-300' : 'text-green-600'}">
-          ✓
         </div>
       </div>
     `).join('');
@@ -485,7 +482,7 @@ class AddLibraryModal {
     constructor() {
         this.modal = document.getElementById('add-library-modal');
         this.addButton = document.querySelector('.navbar-library > div:last-child p');
-        this.closeButton = document.querySelector('#add-library-modal span'); // Fix: select the × span
+        this.closeButton = document.querySelector('#add-library-modal span');
         this.cancelButton = document.getElementById('cancel-btn');
         this.form = document.getElementById('add-library-form');
 
@@ -506,7 +503,7 @@ class AddLibraryModal {
         this.form.addEventListener('submit', (e) => this.handleSubmit(e));
 
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && this.modal.style.display === 'block') {
+            if (e.key === 'Escape' && this.modal.style.display === 'flex') {
                 this.closeModal();
             }
         });
@@ -515,7 +512,7 @@ class AddLibraryModal {
 
 
     openModal() {
-        this.modal.style.display = 'block';
+        this.modal.style.display = 'flex';
         document.getElementById('title').focus();
         document.body.style.overflow = 'hidden';
     }
@@ -527,96 +524,70 @@ class AddLibraryModal {
     }
 
     async handleAddButtonClick() {
-        // Clean workspace before opening modal
         await cleanWorkspace();
-        // Then open the modal
         this.openModal();
     }
 
-    async handleSubmit(e) {
-        e.preventDefault();
+async handleSubmit(e) {
+    e.preventDefault();
 
-        const formData = new FormData(this.form);
-        const title = formData.get('title');
-        const author = formData.get('author');
-        const pdfFile = formData.get('pdf-file');
+    const formData = new FormData(this.form);
+    const title = formData.get('title');
+    const author = formData.get('author');
+    const bookFile = formData.get('pdf-file');
 
-        if (!title.trim()) {
-            alert('Il titolo è obbligatorio!');
-            return;
-        }
+    if (!title.trim()) {
+        alert('Title is required.');
+        return;
+    }
 
-        if (!pdfFile || pdfFile.size === 0) {
-            alert('Devi selezionare un file PDF!');
-            return;
-        }
+    if (!bookFile || bookFile.size === 0) {
+        alert('Please upload a PDF or EPUB file.');
+        return;
+    }
 
-        try {
-            // Upload the PDF to server
-            const uploadFormData = new FormData();
-            uploadFormData.append('title', title.trim());
-            uploadFormData.append('author', author.trim() || 'Autore sconosciuto');
-            uploadFormData.append('pdf-file', pdfFile);
+    const allowedTypes = ['application/pdf', 'application/epub+zip'];
+    if (!allowedTypes.includes(bookFile.type)) {
+        alert('Only PDF or EPUB files are allowed.');
+        return;
+    }
 
-            const response = await fetch('/api/upload-book', {
-                method: 'POST',
-                body: uploadFormData
-            });
+    try {
+        const uploadFormData = new FormData();
+        uploadFormData.append('title', title.trim());
+        uploadFormData.append('author', author.trim() || 'Unknown Author');
+        uploadFormData.append('book-file', bookFile);
 
-            const data = await response.json();
+        const response = await fetch('/api/upload-book', {
+            method: 'POST',
+            body: uploadFormData
+        });
 
-            if (data.success) {
-                this.closeModal();
-                this.showSuccessMessage(`Libro "${data.title}" caricato con successo!`);
+        const data = await response.json();
 
-                // Refresh library list
-                if (navbar) {
-                    await navbar.loadLibraryBooks();
-                }
-
-                // Open chapter modal after a short delay
-                setTimeout(() => {
-                    showChapterModal(data.bookname);
-                }, 1000);
-            } else {
-                throw new Error(data.error || 'Errore nel caricamento del libro');
+        if (data.success) {
+            this.closeModal();
+            if (navbar) {
+                await navbar.loadLibraryBooks();
             }
 
-        } catch (error) {
-            console.error('Errore durante l\'aggiunta del libro:', error);
-            alert(`Errore: ${error.message}`);
+            setTimeout(() => {
+                showChapterModal(data.bookname);
+            }, 1000);
+        } else {
+            throw new Error(data.error || 'Book upload failed.');
         }
+
+    } catch (error) {
+        console.error('Upload error:', error);
+        alert(`Error: ${error.message}`);
     }
+}
 
-    showSuccessMessage(message) {
-        // Create a temporary success message
-        const successDiv = document.createElement('div');
-        successDiv.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background-color: #10b981;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-weight: 500;
-            z-index: 1001;
-            animation: slideIn 0.3s ease-out;
-        `;
-        successDiv.textContent = message;
-
-        document.body.appendChild(successDiv);
-
-        // Remove after 3 seconds
-        setTimeout(() => {
-            successDiv.remove();
-        }, 3000);
-    }
 }
 
 const libraryModal = new AddLibraryModal();
 
-// Generate button functionality
 class GenerateController {
     constructor() {
         this.generateBtn = document.getElementById('genera-btn');

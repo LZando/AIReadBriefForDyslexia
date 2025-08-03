@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import sys
 import os
 import json
@@ -7,7 +6,6 @@ from pathlib import Path
 from collections import Counter
 
 def find_max_font(pagina):
-    """Trova il font più grande in una pagina (titoli dei capitoli)"""
     content = pagina.get_text("dict")
     spans = [
         (span["text"].strip(), span["font"], span["size"])
@@ -27,7 +25,6 @@ def find_max_font(pagina):
     return common_font, max_size
 
 def find_chapter_pages(pdf_path, target_font, target_size):
-    """Trova le pagine che contengono i titoli dei capitoli"""
     doc = fitz.open(pdf_path)
     found_pages = []
     found_titles = []
@@ -57,40 +54,25 @@ def find_chapter_pages(pdf_path, target_font, target_size):
     return found_pages, found_titles
 
 def extract_chapters(bookname, reference_page):
-    """
-    Estrae la lista dei capitoli dal PDF
-    
-    Args:
-        bookname (str): Nome del libro
-        reference_page (int): Pagina di riferimento per identificare il font dei titoli
-    
-    Returns:
-        dict: Lista dei capitoli trovati
-    """
     try:
-        # Costruisci il percorso del PDF
-        pdf_path = Path('bookstore') / f'{bookname}.pdf'
-        
+        pdf_path = Path("bookstore") / "booktemp" / f"{bookname}.pdf"
+
         if not pdf_path.exists():
             raise FileNotFoundError(f"PDF non trovato: {pdf_path}")
-        
-        # Apri il documento PDF
+
         doc = fitz.open(str(pdf_path))
         
         if reference_page < 1 or reference_page > len(doc):
             raise ValueError(f"Numero pagina {reference_page} fuori range (1-{len(doc)})")
-        
-        # Trova il font più grande nella pagina di riferimento
+
         reference_page_obj = doc.load_page(reference_page - 1)
         font_hugger, size_hugger = find_max_font(reference_page_obj)
         
         if not font_hugger or not size_hugger:
             raise ValueError("Nessun font valido trovato nella pagina di riferimento")
-        
-        # Trova tutte le pagine con capitoli
+
         chapter_pages, chapter_titles = find_chapter_pages(str(pdf_path), font_hugger, size_hugger)
-        
-        # Costruisci la lista dei capitoli
+
         chapters = []
         for i, (page, title) in enumerate(zip(chapter_pages, chapter_titles)):
             # Calcola la pagina finale del capitolo
@@ -125,6 +107,8 @@ def extract_chapters(bookname, reference_page):
             "bookname": bookname,
             "referencePage": reference_page
         }
+
+
 
 def main():
     if len(sys.argv) != 3:

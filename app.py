@@ -4,21 +4,34 @@ import sys
 import json
 import subprocess
 from pathlib import Path
+import shutil
+from concurrent.futures import ProcessPoolExecutor, as_completed, TimeoutError
+import atexit
 
 app = Flask(__name__)
 
 # Configurazione
 app.config['DEBUG'] = True
 
-# Serve i file statici del frontend
+# Pool di processi per elaborazione PDF (inizializzato solo quando necessario)
+pdf_process_pool = None
+
+def get_pdf_pool():
+    global pdf_process_pool
+    if pdf_process_pool is None:
+        pdf_process_pool = ProcessPoolExecutor(
+            max_workers=3,  # Max 3 processi paralleli per PDf
+            mp_context=None  # Usa il context di default
+        )
+        # Cleanup automatico all'uscita dell'app
+        atexit.register(lambda: pdf_process_pool.shutdown(wait=True))
+    return pdf_process_pool
 @app.route('/')
 def index():
     return send_from_directory('frontend', 'index.html')
-
 @app.route('/<path:filename>')
 def static_files(filename):
     return send_from_directory('frontend', filename)
-
 @app.route('/assets/<path:filename>')
 def assets_files(filename):
     return send_from_directory('assets', filename)
@@ -28,37 +41,22 @@ def assets_files(filename):
 def health():
     return jsonify({
         'status': 'OK',
-        'message': 'AI Read Brief for Dyslexia API is running',
+        'message': 'API is running',
         'timestamp': str(datetime.utcnow())
     })
 
 @app.route('/api/cleanup', methods=['POST'])
 def cleanup_workspace():
-    """Clean up cache contents and original PDFs, keep chapter folders"""
     try:
-        import shutil
-        
-        # Clean cache directory contents but keep the directory
-        cache_dir = Path('bookstore') / 'elaboratebook' / 'cache'
-        if cache_dir.exists():
-            # Remove all contents of cache directory
-            for item in cache_dir.iterdir():
-                if item.is_file():
+        book_temp = Path('bookstore') / 'booktemp'
+
+        if book_temp.exists():
+            for item in book_temp.iterdir():
+                if item.is_file() or item.is_symlink():
                     item.unlink()
                 elif item.is_dir():
                     shutil.rmtree(item)
-        else:
-            # Create cache directory if it doesn't exist
-            cache_dir.mkdir(parents=True, exist_ok=True)
-        
-        # Clean only PDFs in bookstore root (original files)
-        bookstore_dir = Path('bookstore')
-        if bookstore_dir.exists():
-            for pdf_file in bookstore_dir.glob('*.pdf'):
-                pdf_file.unlink()
-        
-        # DON'T remove chapter folders in elaboratebook - those are the library!
-        
+
         return jsonify({
             'success': True,
             'message': 'Cache and original PDFs cleaned successfully'
@@ -70,103 +68,220 @@ def cleanup_workspace():
             'error': str(e)
         }), 500
 
-@app.route('/api/book-info/<bookname>')
-def book_info(bookname):
+
+@app.route('/api/library', methods=['GET'])
+def get_library():
     try:
-        # Esegui lo script Python per ottenere le info del libro
-        result = subprocess.run([
-            sys.executable, 'logic/extractor.py', bookname
-        ], capture_output=True, text=True, check=True)
-        
-        # Parse del risultato JSON
-        data = json.loads(result.stdout.strip())
-        
-        if data.get('status') == 'error':
-            return jsonify({'error': data.get('message', 'Errore sconosciuto')}), 500
-        
-        # Controlla le pagine disponibili nella cache
-        cache_dir = Path('bookstore') / 'elaboratebook' / 'cache' / bookname
-        available_pages = []
-        
-        if cache_dir.exists():
-            for file in cache_dir.glob('page_*.png'):
-                try:
-                    page_num = int(file.stem.split('_')[1])
-                    available_pages.append(page_num)
-                except (ValueError, IndexError):
-                    continue
-            available_pages.sort()
-        
+        elaboratebook_path = Path('bookstore') / 'elaboratebook'
+        books = []
+        if elaboratebook_path.exists():
+            for item in elaboratebook_path.iterdir():
+                books.append({
+                    'name': item.name,
+                    'id': item.name,
+                    'displayName': item.name.replace('_', ' ').title()
+                })
+
         return jsonify({
-            'bookname': bookname,
-            'totalPages': data.get('pages', 24),
-            'availablePages': available_pages,
-            'cacheDirectory': str(cache_dir)
+            'success': True,
+            'books': books
         })
-        
-    except subprocess.CalledProcessError as e:
-        return jsonify({'error': f'Errore nello script Python: {e.stderr}'}), 500
-    except json.JSONDecodeError:
-        return jsonify({'error': 'Errore nella risposta dallo script Python'}), 500
+
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@app.route('/api/upload-book', methods=['POST'])
+def upload_book():
+    try:
+        if 'book-file' not in request.files:
+            return jsonify({
+                'success': False,
+                'error': 'No book file provided (PDF or EPUB expected)'
+            }), 400
+
+        file = request.files['book-file']
+        title = request.form.get('title', '').strip()
+        author = request.form.get('author', 'Unknown Author').strip()
+
+        if file.filename == '':
+            return jsonify({
+                'success': False,
+                'error': 'No file selected'
+            }), 400
+
+        if not title:
+            return jsonify({
+                'success': False,
+                'error': 'Title is required'
+            }), 400
+
+        import re
+        from pathlib import Path
+
+        bookname = title.lower().replace(' ', '_').replace('-', '_')
+        bookname = re.sub(r'[^a-z0-9_]', '', bookname)
+
+        filename = file.filename.lower()
+        if not (filename.endswith('.pdf') or filename.endswith('.epub')):
+            return jsonify({
+                'success': False,
+                'error': 'Unsupported file type. Only PDF and EPUB are allowed.'
+            }), 400
+
+        ext = '.pdf' if filename.endswith('.pdf') else '.epub'
+
+        book_dir = Path('bookstore') / 'booktemp'
+        book_dir.mkdir(parents=True, exist_ok=True)
+
+        file_path = book_dir / f'{bookname}{ext}'
+        file.save(str(file_path))
+
+        return jsonify({
+            'success': True,
+            'message': f'Book "{title}" uploaded successfully',
+            'bookname': bookname,
+            'title': title,
+            'author': author,
+            'path': str(file_path)
+        })
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
 
 @app.route('/api/bookelaboration', methods=['POST'])
 def book_elaboration():
     data = request.get_json()
     bookname = data.get('bookname')
-    
+    page = data.get('page')
+
     if not bookname:
         return jsonify({'error': 'Bookname is required'}), 400
-    
+        
     try:
-        # Esegui lo script Python per elaborare il libro
-        result = subprocess.run([
-            sys.executable, 'logic/extractor.py', bookname
-        ], capture_output=True, text=True, check=True)
+        from logic.extractor import extract_book_info, extract_page_image
         
-        # Parse del risultato JSON
-        response_data = json.loads(result.stdout.strip())
+        pool = get_pdf_pool()
         
-        if response_data.get('status') == 'error':
-            return jsonify({'error': response_data.get('message', 'Errore sconosciuto')}), 500
-        
-        return jsonify({
-            'success': True,
-            'pages': response_data.get('pages', 24),
-            'message': 'Book processed successfully'
-        })
-        
-    except subprocess.CalledProcessError as e:
-        return jsonify({'error': f'Errore nello script Python: {e.stderr}'}), 500
-    except json.JSONDecodeError:
-        return jsonify({'error': 'Errore nella risposta dallo script Python'}), 500
+        if page:
+            future = pool.submit(extract_page_image, bookname, int(page))
+            filename, full_path = future.result(timeout=30)
+            
+            return jsonify({
+                'success': True,
+                'filename': filename,
+                'message': f'Page {page} extracted'
+            })
+        else:
+            future = pool.submit(extract_book_info, bookname)
+            response_data = future.result(timeout=15)
+            
+            if response_data.get('status') == 'error':
+                return jsonify({'error': response_data.get('message', 'Error')}), 500
+                
+            return jsonify({
+                'success': True,
+                'pages': response_data.get('pages'),
+                'message': 'Book processed successfully'
+            })
+
+    except TimeoutError:
+        return jsonify({'error': 'Processing timeout'}), 408
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        app.logger.error(f"Error processing book {bookname}: {str(e)}")
+        return jsonify({'error': f'Processing error: {str(e)}'}), 500
+
 
 @app.route('/api/book-image/<bookname>/<int:page_number>')
 def book_image(bookname, page_number):
-    """Serve le immagini delle pagine del libro"""
-    cache_dir = Path('bookstore') / 'elaboratebook' / 'cache' / bookname
-    image_file = cache_dir / f'page_{page_number:03d}.png'
-    
+    cache_dir = Path('bookstore') / 'booktemp' / 'elaboratebook' / 'cache' / bookname
+    image_filename = f'page_{page_number:03d}.png'
+    image_file = cache_dir / image_filename
+
     if image_file.exists():
-        return send_from_directory(cache_dir, f'page_{page_number:03d}.png')
-    else:
-        # Se l'immagine non esiste, prova a generarla
-        try:
-            result = subprocess.run([
-                sys.executable, 'logic/extractor.py', bookname, str(page_number)
-            ], capture_output=True, text=True, check=True)
+        return send_from_directory(cache_dir, image_filename)
+    try:
+        from logic.extractor import extract_page_image
+        pool = get_pdf_pool()
+        future = pool.submit(extract_page_image, bookname, page_number)
+
+        filename, full_path = future.result(timeout=30)
+        if image_file.exists():
+            return send_from_directory(cache_dir, image_filename)
+        else:
+            return jsonify({'error': 'Image generation failed'}), 500
             
-            # Se la generazione ha successo, servi l'immagine
-            if image_file.exists():
-                return send_from_directory(cache_dir, f'page_{page_number:03d}.png')
-            else:
-                return jsonify({'error': 'Image not found and could not be generated'}), 404
-                
-        except subprocess.CalledProcessError:
-            return jsonify({'error': 'Failed to generate image'}), 404
+    except TimeoutError:
+        return jsonify({'error': 'Image generation timeout (30s)'}), 408
+    except Exception as e:
+        app.logger.error(f"Error generating image for {bookname} page {page_number}: {str(e)}")
+        return jsonify({'error': f'Failed to generate image: {str(e)}'}), 500
+
+@app.route('/api/analyze-chapter', methods=['POST'])
+def analyze_chapter():
+    data = request.get_json()
+
+    bookname = data.get('bookname')
+    reference_page = data.get('pageNumber')
+
+    if not bookname or not reference_page:
+        return jsonify({
+            'success': False,
+            'message': 'Bookname and reference page are required'
+        }), 400
+
+    try:
+        cmd = [sys.executable, 'logic/chapterlistcreator.py', bookname, str(reference_page)]
+
+        result = subprocess.run(
+            cmd, capture_output=True, text=True, check=True
+        )
+
+        chapters_data = json.loads(result.stdout.strip())
+
+        if chapters_data.get('status') == 'error':
+            return jsonify({
+                'success': False,
+                'error': chapters_data.get('message', 'Unknown error')
+            }), 500
+
+        return jsonify({
+            'success': True,
+            'bookname': chapters_data.get('bookname'),
+            'referencePage': chapters_data.get('referencePage'),
+            'detectedFont': chapters_data.get('detectedFont'),
+            'detectedSize': chapters_data.get('detectedSize'),
+            'totalChapters': chapters_data.get('totalChapters'),
+            'chapters': chapters_data.get('chapters', [])
+        })
+
+    except subprocess.CalledProcessError as e:
+        return jsonify({
+            'success': False,
+            'error': f'Error running chapter detection script: {e.stderr or e.stdout}'
+        }), 500
+
+    except json.JSONDecodeError as e:
+        return jsonify({
+            'success': False,
+            'error': 'Invalid JSON returned by chapter detection script'
+        }), 500
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
 
 @app.route('/api/book-chapters/<bookname>', methods=['GET'])
 def get_book_chapters(bookname):
@@ -209,224 +324,11 @@ def get_book_chapters(bookname):
             'error': str(e)
         }), 500
 
-@app.route('/api/library', methods=['GET'])
-def get_library():
-    """Get all available books from the elaboratebook directory"""
-    try:
-        elaboratebook_path = Path('bookstore') / 'elaboratebook'
-        books = []
-        
-        if elaboratebook_path.exists():
-            for item in elaboratebook_path.iterdir():
-                # Include only directories and exclude 'cache' folder
-                if item.is_dir() and item.name != 'cache':
-                    books.append({
-                        'name': item.name,
-                        'id': item.name,
-                        'displayName': item.name.replace('_', ' ').title()
-                    })
-        
-        return jsonify({
-            'success': True,
-            'books': books
-        })
-        
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
 
-@app.route('/api/library', methods=['POST'])
-def add_to_library():
-    data = request.get_json()
-    title = data.get('title')
-    author = data.get('author', 'Unknown Author')
-    
-    if not title:
-        return jsonify({
-            'success': False,
-            'message': 'Title is required'
-        }), 400
-    
-    # TODO: Salva nel database
-    print(f'Adding book: {title} by {author}')
-    
-    return jsonify({
-        'success': True,
-        'message': 'Book added to library',
-        'book': {
-            'id': int(time.time()),
-            'title': title,
-            'author': author,
-            'dateAdded': datetime.utcnow().isoformat()
-        }
-    })
 
-@app.route('/api/analyze-chapter', methods=['POST'])
-def analyze_chapter():
-    data = request.get_json()
-    bookname = data.get('bookname')
-    reference_page = data.get('pageNumber')  # Ora usata come pagina di riferimento
-    
-    if not bookname or not reference_page:
-        return jsonify({
-            'success': False,
-            'message': 'Bookname and reference page are required'
-        }), 400
-    
-    try:
-        # Chiama lo script chapterlistcreator.py
-        result = subprocess.run([
-            sys.executable, 'logic/chapterlistcreator.py', bookname, str(reference_page)
-        ], capture_output=True, text=True, check=True)
-        
-        # Parse del risultato JSON
-        chapters_data = json.loads(result.stdout.strip())
-        
-        if chapters_data.get('status') == 'error':
-            return jsonify({
-                'success': False,
-                'error': chapters_data.get('message', 'Errore sconosciuto')
-            }), 500
-        
-        return jsonify({
-            'success': True,
-            'bookname': chapters_data.get('bookname'),
-            'referencePage': chapters_data.get('referencePage'),
-            'detectedFont': chapters_data.get('detectedFont'),
-            'detectedSize': chapters_data.get('detectedSize'),
-            'totalChapters': chapters_data.get('totalChapters'),
-            'chapters': chapters_data.get('chapters', [])
-        })
-        
-    except subprocess.CalledProcessError as e:
-        return jsonify({
-            'success': False,
-            'error': f'Errore nello script di estrazione capitoli: {e.stderr}'
-        }), 500
-    except json.JSONDecodeError:
-        return jsonify({
-            'success': False,
-            'error': 'Errore nella risposta dello script di estrazione capitoli'
-        }), 500
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
 
-@app.route('/api/upload-book', methods=['POST'])
-def upload_book():
-    """Upload and save user's PDF book to elaboratebook directory"""
-    try:
-        if 'pdf-file' not in request.files:
-            return jsonify({
-                'success': False,
-                'error': 'No PDF file provided'
-            }), 400
-        
-        file = request.files['pdf-file']
-        title = request.form.get('title', '').strip()
-        author = request.form.get('author', 'Unknown Author').strip()
-        
-        if file.filename == '':
-            return jsonify({
-                'success': False,
-                'error': 'No file selected'
-            }), 400
-        
-        if not title:
-            return jsonify({
-                'success': False,
-                'error': 'Title is required'
-            }), 400
-        
-        # Create clean book name from title
-        bookname = title.lower().replace(' ', '_').replace('-', '_')
-        # Remove non-alphanumeric characters except underscore
-        import re
-        bookname = re.sub(r'[^a-z0-9_]', '', bookname)
-        
-        # Create directories
-        elaboratebook_dir = Path('bookstore') / 'elaboratebook'
-        book_dir = elaboratebook_dir / bookname
-        book_dir.mkdir(parents=True, exist_ok=True)
-        
-        # Save PDF file
-        pdf_path = book_dir / f'{bookname}.pdf'
-        file.save(str(pdf_path))
-        
-        # Also save to bookstore root for processing
-        bookstore_pdf = Path('bookstore') / f'{bookname}.pdf'
-        import shutil
-        shutil.copy2(pdf_path, bookstore_pdf)
-        
-        return jsonify({
-            'success': True,
-            'message': f'Book "{title}" uploaded successfully',
-            'bookname': bookname,
-            'title': title,
-            'author': author,
-            'path': str(pdf_path)
-        })
-        
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
 
-@app.route('/api/copy-book', methods=['POST'])
-def copy_book():
-    """Copy selected book from elaboratebook to bookstore directory"""
-    try:
-        data = request.get_json()
-        bookname = data.get('bookname')
-        
-        if not bookname:
-            return jsonify({
-                'success': False,
-                'error': 'Book name is required'
-            }), 400
-        
-        # Source and destination paths
-        source_dir = Path('bookstore') / 'elaboratebook' / bookname
-        dest_file = Path('bookstore') / f'{bookname}.pdf'
-        
-        if not source_dir.exists():
-            return jsonify({
-                'success': False,
-                'error': f'Book "{bookname}" not found in library'
-            }), 404
-        
-        # Find the first PDF file in the source directory
-        pdf_files = list(source_dir.glob('*.pdf'))
-        if not pdf_files:
-            return jsonify({
-                'success': False,
-                'error': f'No PDF file found for book "{bookname}"'
-            }), 404
-        
-        source_pdf = pdf_files[0]  # Take the first PDF found
-        
-        # Copy the PDF to bookstore
-        import shutil
-        shutil.copy2(source_pdf, dest_file)
-        
-        return jsonify({
-            'success': True,
-            'message': f'Book "{bookname}" copied successfully',
-            'bookname': bookname,
-            'sourcePath': str(source_pdf),
-            'destinationPath': str(dest_file)
-        })
-        
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
+
 
 @app.route('/api/gemini-generation', methods=['POST'])
 def gemini_generation():
@@ -585,6 +487,7 @@ def save_chapters():
             'success': False,
             'error': str(e)
         }), 500
+
 
 if __name__ == '__main__':
     import time

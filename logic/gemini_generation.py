@@ -80,7 +80,7 @@ def extract_chapter_info(bookname, selected_chapters):
             raise ValueError("GEMINI_API_KEY environment variable not set")
         
         # Base path for the book
-        book_dir = Path('bookstore') / 'elaboratebook' / bookname
+        book_dir = Path('booktemp') / 'elaboratebook' / bookname
         
         if not book_dir.exists():
             raise FileNotFoundError(f"Book directory not found: {book_dir}")
