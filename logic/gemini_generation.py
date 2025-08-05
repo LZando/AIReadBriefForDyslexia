@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import sys
 import os
 import json
@@ -13,7 +12,6 @@ from google import genai
 from google.genai import types
 
 def extract_text_from_pdf(pdf_path):
-    """Extract text from PDF file"""
     try:
         doc = fitz.open(pdf_path)
         text = ""
@@ -49,7 +47,6 @@ def generate_with_gemini(input_text):
             ],
         )
 
-        # Collect all chunks
         response_text = ""
         for chunk in client.models.generate_content_stream(
             model=model,
@@ -64,23 +61,11 @@ def generate_with_gemini(input_text):
         return f"Error generating with Gemini: {str(e)}"
 
 def extract_chapter_info(bookname, selected_chapters):
-    """
-    Extract chapter information and generate summaries with Gemini
-    
-    Args:
-        bookname (str): Name of the book
-        selected_chapters (list): List of selected chapter IDs
-    
-    Returns:
-        dict: Chapter information with Gemini-generated summaries
-    """
     try:
-        # Check for Gemini API key
         if not os.environ.get("GEMINI_API_KEY"):
             raise ValueError("GEMINI_API_KEY environment variable not set")
-        
-        # Base path for the book
-        book_dir = Path('booktemp') / 'elaboratebook' / bookname
+
+        book_dir = Path('bookstore') / 'elaboratebook' / bookname
         
         if not book_dir.exists():
             raise FileNotFoundError(f"Book directory not found: {book_dir}")

@@ -1,127 +1,76 @@
-#!/usr/bin/env python3
-import sys
-import os
-import json
-import fitz  # PyMuPDF
+import sys, os, json, fitz
 from pathlib import Path
 
+
 def split_pdf_into_chapters(bookname, chapters_data):
-    """
-    Divide un PDF in capitoli e li salva in una cartella dedicata
-    """
     try:
-        # Percorso del PDF originale
-        pdf_path = Path('booktemp') / f'{bookname}.pdf'
-        
+        pdf_path   = Path("bookstore") / "booktemp"     / f"{bookname}.pdf"
+        output_dir = Path("bookstore") / "elaboratebook" /  bookname
+
         if not pdf_path.exists():
-            raise FileNotFoundError(f"PDF non trovato: {pdf_path}")
-        
-        # Crea la cartella di destinazione
-        output_dir = Path('booktemp') / 'elaboratebook' / bookname
+            raise FileNotFoundError(f"PDF not found: {pdf_path}")
+
         output_dir.mkdir(parents=True, exist_ok=True)
-        
-        # Apri il documento PDF
-        doc = fitz.open(str(pdf_path))
-        
-        created_files = []
-        
-        # Elabora ogni capitolo
-        for chapter in chapters_data.get('chapters', []):
-            chapter_num = chapter['chapterNumber']
-            chapter_title = chapter['title']
-            start_page = chapter['startPage'] - 1  # PyMuPDF usa indici 0-based
-            end_page = chapter['endPage'] - 1      # PyMuPDF usa indici 0-based
-            
-            # Pulisci il titolo per il nome del file
-            clean_title = "".join(c for c in chapter_title if c.isalnum() or c in (' ', '-', '_')).strip()
-            clean_title = clean_title.replace(' ', '_')
-            
-            # Crea un nuovo documento per questo capitolo
+        doc = fitz.open(pdf_path)
+
+        created = []
+        for ch in chapters_data.get("chapters", []):
+            n, title = ch["chapterNumber"], ch["title"]
+            start, end = ch["startPage"] - 1, ch["endPage"] - 1   # 0-based
+            clean = "".join(c for c in title if c.isalnum() or c in " -_").strip().replace(" ", "_")
             chapter_doc = fitz.open()
-            
-            # Copia le pagine del capitolo
-            for page_num in range(start_page, end_page + 1):
-                if page_num < len(doc):
-                    chapter_doc.insert_pdf(doc, from_page=page_num, to_page=page_num)
-            
-            # Nome del file del capitolo
-            chapter_filename = f"cap{chapter_num}[{clean_title}].pdf"
-            chapter_path = output_dir / chapter_filename
-            
-            # Salva il capitolo
-            chapter_doc.save(str(chapter_path))
+            for p in range(start, end + 1):
+                if p < len(doc):
+                    chapter_doc.insert_pdf(doc, from_page=p, to_page=p)
+            filename = f"cap{n}[{clean}].pdf"
+            chapter_path = output_dir / filename
+            chapter_doc.save(chapter_path)
             chapter_doc.close()
-            
-            created_files.append({
-                "chapterNumber": chapter_num,
-                "title": chapter_title,
-                "filename": chapter_filename,
+            created.append({
+                "chapterNumber": n,
+                "title": title,
+                "filename": filename,
                 "path": str(chapter_path),
-                "startPage": chapter['startPage'],
-                "endPage": chapter['endPage'],
-                "pageCount": chapter['pageCount']
+                "startPage": ch["startPage"],
+                "endPage":   ch["endPage"],
+                "pageCount": ch["pageCount"],
             })
-        
+
         doc.close()
-        
-        result = {
+        return {
             "status": "success",
             "bookname": bookname,
             "outputDirectory": str(output_dir),
-            "totalChapters": len(created_files),
-            "createdFiles": created_files,
-            "message": f"PDF diviso con successo in {len(created_files)} capitoli"
+            "totalChapters": len(created),
+            "createdFiles": created,
+            "message": f"PDF split into {len(created)} chapters",
         }
-        
-        return result
-        
+
     except Exception as e:
-        return {
-            "status": "error",
-            "message": str(e),
-            "bookname": bookname
-        }
+        return {"status": "error", "message": str(e), "bookname": bookname}
+
 
 def main():
     if len(sys.argv) != 3:
-        print(json.dumps({
-            "status": "error",
-            "message": "Usage: python pdf_splitter.py <bookname> <chapters_json_file>"
-        }))
-        sys.exit(1)
-    
-    try:
-        bookname = sys.argv[1]
-        chapters_json_file = sys.argv[2]
-        
-        # Leggi i dati dei capitoli dal file JSON
-        with open(chapters_json_file, 'r', encoding='utf-8') as f:
-            chapters_data = json.load(f)
-        
-        result = split_pdf_into_chapters(bookname, chapters_data)
-        print(json.dumps(result, ensure_ascii=False, indent=2))
-        
-        if result["status"] == "error":
-            sys.exit(1)
-            
-    except FileNotFoundError:
-        print(json.dumps({
-            "status": "error",
-            "message": "Chapters data file not found"
-        }))
-        sys.exit(1)
-    except json.JSONDecodeError:
-        print(json.dumps({
-            "status": "error",
-            "message": "Invalid JSON in chapters data file"
-        }))
-        sys.exit(1)
-    except Exception as e:
-        print(json.dumps({
-            "status": "error",
-            "message": f"Unexpected error: {str(e)}"
-        }))
+        print(json.dumps({"status": "error",
+                          "message": "Usage: pdf_splitter.py <bookname> <chapters_json>"}))
         sys.exit(1)
 
+    bookname, chapters_json_file = sys.argv[1:3]
+
+    try:
+        with open(chapters_json_file, encoding="utf-8") as f:
+            chapters_data = json.load(f)
+    except FileNotFoundError:
+        print(json.dumps({"status": "error", "message": "Chapters JSON not found"}))
+        sys.exit(1)
+    except json.JSONDecodeError:
+        print(json.dumps({"status": "error", "message": "Invalid JSON"}))
+        sys.exit(1)
+
+    result = split_pdf_into_chapters(bookname, chapters_data)
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    sys.exit(0 if result["status"] == "success" else 1)
+
 if __name__ == "__main__":
-    main() 
+    main()

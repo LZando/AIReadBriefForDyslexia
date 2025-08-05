@@ -253,9 +253,6 @@ class NavBar {
                 <span class="chapter-text ${this.selectedChapters.has(chapter.id) ? 'text-white' : 'text-gray-800'}">${chapter.title}</span>
               </h4>
             </div>
-            <div class="chapter-status text-xs font-bold min-w-5 text-center relative z-10 transition-colors duration-300 ${this.selectedChapters.has(chapter.id) ? 'text-green-300' : 'text-green-600'}">
-              ${this.selectedChapters.has(chapter.id) ? '✓' : ''}
-            </div>
           </div>
         `).join('')}
       </div>
@@ -267,7 +264,8 @@ class NavBar {
     this.menuChapters.querySelectorAll('.chapter-item').forEach(item => {
       item.addEventListener('click', (e) => this.selectChapter(item, e));
       
-      // Add hover shimmer effect - exact same as library
+      // DUPLICATE: Add hover shimmer effect - exact same as library (lines 97-110)
+      /*
       item.addEventListener('mouseenter', () => {
         const shimmer = item.querySelector('.chapter-shimmer');
         shimmer.style.left = '100%';
@@ -281,6 +279,7 @@ class NavBar {
         const shimmer = item.querySelector('.chapter-shimmer');
         shimmer.style.left = '-100%';
       });
+      */
     });
 
     // Add clear selection button listener
@@ -625,7 +624,7 @@ class GenerateController {
     handleGenerate() {
         // Check if a book is selected
         if (!navbar.selectedBook) {
-            alert('Seleziona prima un libro dalla libreria!');
+            alert('Chose a Book!');
             return;
         }
 
@@ -640,12 +639,7 @@ class GenerateController {
         // Show what will be generated
         const bookName = navbar.selectedBook;
         const chapterList = selectedChapters.map(ch => `Cap ${ch.number}: ${ch.title}`).join('\n');
-        
-        const message = `Genererai contenuto per:\n\nLibro: ${bookName}\n\nCapitoli selezionati:\n${chapterList}\n\nProcedere?`;
-        
-        if (confirm(message)) {
-            this.startGeneration(bookName, selectedChapters);
-        }
+        this.startGeneration(bookName, selectedChapters);
     }
 
     async startGeneration(bookName, chapters) {
@@ -733,16 +727,15 @@ class GenerateController {
             const htmlContent = marked.parse(data.gemini_summary);
             
             // Add book and chapter information at the top
-            const bookInfo = `
-                <div style="background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%); padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #667eea;">
-                    <h4 style="margin: 0 0 10px 0; color: #2d3748;">📚 ${data.bookname}</h4>
-                    <p style="margin: 0; color: #4a5568; font-size: 14px;">
-                        <strong>Capitoli analizzati:</strong> ${data.total_chapters} 
-                        (${data.chapters.map(ch => `Cap ${ch.chapter_number}`).join(', ')})
-                    </p>
-                </div>
+           const bookInfo = `
+              <div class="border-l-4 border-primary rounded-xl mb-5 p-4">
+                <p class="text-sm text-gray-600 m-0">
+                  <strong>Capitoli analizzati:</strong> ${data.total_chapters} 
+                  (${data.chapters.map(ch => `Cap ${ch.chapter_number}`).join(', ')})
+                </p>
+              </div>
             `;
-            
+
             const fullContent = bookInfo + htmlContent;
             
             // Set the content for desktop
@@ -1010,7 +1003,7 @@ class ChapterPageController {
                 },
                 body: JSON.stringify({ 
                     bookname: this.bookname,
-                    pageNumber: this.currentPage  // Usata come pagina di riferimento
+                    pageNumber: this.currentPage
                 })
             });
 
@@ -1031,42 +1024,58 @@ class ChapterPageController {
         }
     }
 
-    displayChaptersList(data) {
-        const resultContainer = document.getElementById('chapter-result');
-        if (resultContainer) {
-            // Store chapters data for later use
-            this.currentChaptersData = data;
-            
-            resultContainer.innerHTML = `
-                <div class="chapters-list">                   
-                    <div class="extraction-info">
-                    <strong>n chapters:</strong> ${data.totalChapters}
-                    </div>
+displayChaptersList(data) {
+  const resultContainer = document.getElementById('chapter-result');
+  if (!resultContainer) return;
 
-                    <div class="chapters-container">
-                        ${data.chapters.map((chapter, index) => `
-                            <div class="chapter-item">
-                                <div class="chapter-number">Cap. ${chapter.chapterNumber}</div>
-                                <div class="chapter-details">
-                                    <h5 class="chapter-title">${chapter.title}</h5>
-                                    <div class="chapter-info">
-                                        <span class="page-range">Pagine ${chapter.startPage}-${chapter.endPage}</span>
-                                        <span class="page-count">(${chapter.pageCount} pagine)</span>
-                                    </div>
-                                </div>
+  this.currentChaptersData = data;
+
+  resultContainer.innerHTML = /* html */`
+    <div class="card bg-white shadow rounded-lg p-6 space-y-6
+                flex flex-col h-full">          <!-- flex-column -->
+
+        <!-- HEADER + LISTA ------------------------------------------------ -->
+        <div class="chapters-list flex-1 flex flex-col">
+            <div class="extraction-info mb-4">
+                <strong>n chapters:</strong> ${data.totalChapters}
+            </div>
+
+            <div class="chapters-container flex-1 overflow-y-auto">
+                ${data.chapters.map(ch => `
+                    <div class="chapter-item">
+                        <div class="chapter-number">Cap. ${ch.chapterNumber}</div>
+                        <div class="chapter-details">
+                            <h5 class="chapter-title">${ch.title}</h5>
+                            <div class="chapter-info">
+                                <span class="page-range">
+                                    Pages ${ch.startPage}-${ch.endPage}
+                                </span>
+                                <span class="page-count">
+                                    (${ch.pageCount} pages)
+                                </span>
                             </div>
-                        `).join('')}
+                        </div>
                     </div>
-                </div>
-            `;
+                `).join('')}
+            </div>
+        </div>
 
-            // Connect Save button after displaying results
-            this.connectSaveButton();
-            
-            // Scroll to results
-            resultContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
-    }
+        <!-- FOOTER FISSO --------------------------------------------------- -->
+        <div class="chapter-save-button-container">
+            <button id="save-chapters-btn"
+                    class="inline-flex items-center gap-2 px-6 py-3 rounded-2xl
+                           font-semibold shadow-lg bg-primary text-white
+                           transition hover:bg-gray-700">
+                Save
+            </button>
+        </div>
+    </div>
+  `;
+
+  this.connectSaveButton();
+  resultContainer.scrollIntoView({behavior: 'smooth', block: 'nearest'});
+}
+
 
     connectSaveButton() {
         const saveBtn = document.getElementById('save-chapters-btn');
@@ -1556,7 +1565,8 @@ class MobileController {
       if (desktopContent) {
         this.mobileLibraryContainer.innerHTML = desktopContent.innerHTML;
         
-        // Re-add event listeners for mobile library items
+        // DUPLICATE: Re-add event listeners for mobile library items (similar to lines 92-95)
+        /*
         this.mobileLibraryContainer.querySelectorAll('.library-book-item').forEach(item => {
           item.addEventListener('click', () => {
             if (window.navbar) {
@@ -1565,6 +1575,7 @@ class MobileController {
             }
           });
         });
+        */
       }
     }
   }
@@ -1575,7 +1586,8 @@ class MobileController {
       if (desktopContent) {
         this.mobileChaptersContainer.innerHTML = desktopContent.innerHTML;
         
-        // Re-add event listeners for mobile chapter items
+        // DUPLICATE: Re-add event listeners for mobile chapter items (similar to lines 267-268)
+        /*
         this.mobileChaptersContainer.querySelectorAll('.chapter-item').forEach(item => {
           item.addEventListener('click', (e) => {
             if (window.navbar) {
@@ -1583,6 +1595,7 @@ class MobileController {
             }
           });
         });
+        */
       }
     }
   }
