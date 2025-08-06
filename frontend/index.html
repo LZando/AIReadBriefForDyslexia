@@ -11,8 +11,12 @@
     <link rel="stylesheet" href="styles/custom.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
+
+<!-- HEADER -->
+
+
 <body>
-    <!-- Mobile Header (hidden on desktop) -->
+    <!-- Mobile Layout -->
     <div class="lg:hidden bg-box fixed top-0 left-0 right-0 z-50 p-4 flex items-center justify-between shadow-lg">
         <div class="flex items-center gap-3">
             <img class="w-10 h-10 rounded-lg object-cover" src="assets/logos/dixylogo.png">
@@ -34,16 +38,16 @@
             <!-- Main Menu Icons -->
             <div class="bg-box w-[8rem] flex flex-col items-center rounded-[20px] p-4 relative overflow-hidden">
                 <img class="w-24 h-24 mb-6 rounded-lg object-cover" src="assets/logos/dixylogo.png">
-                
+
                 <div class="flex justify-center items-center w-12 h-12 mt-5 rounded-xl bg-primary border border-black/10 transition-all duration-300 cursor-pointer select-none shadow-lg hover:bg-gray-800" id="library-menu-button">
                     <span class="text-white text-xl font-bold">▤</span>
                 </div>
-                
+
                 <div class="flex justify-center items-center w-12 h-12 mt-5 rounded-xl bg-primary border border-black/10 transition-all duration-300 cursor-pointer select-none shadow-lg hover:bg-gray-800" id="chapter-menu-button">
                     <span class="text-white text-xl font-bold">☰</span>
                 </div>
             </div>
-            
+
             <!-- Library Menu -->
             <div id="navbar-library" class="bg-box w-[14rem] navbar-library flex flex-col rounded-[20px] h-full overflow-hidden">
                 <div class="flex justify-center items-center py-6 px-4 bg-gradient-to-br from-primary to-gray-800 text-white rounded-t-[20px]">
@@ -142,7 +146,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Mobile Generate Button -->
                 <div class="flex justify-center items-center p-4">
                     <button id="mobile-genera-btn" class="w-full max-w-xs inline-flex items-center justify-center px-6 py-4 rounded-2xl font-semibold text-lg cursor-pointer transition-all duration-200 shadow-lg bg-primary text-white gap-3 hover:bg-gray-700 active:scale-95">

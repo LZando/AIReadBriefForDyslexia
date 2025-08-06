@@ -33,7 +33,7 @@ class NavBar {
     this.stateLibrary = !this.stateLibrary;
     this.toggleLibrary.classList.toggle("active");
     this.menuLibrary.classList.toggle('collapsed');
-    
+
     // Refresh books when opening library
     if (this.stateLibrary) {
       await this.loadLibraryBooks();
@@ -53,7 +53,7 @@ class NavBar {
     try {
       const response = await fetch('/api/library');
       const data = await response.json();
-      
+
       if (data.success) {
         this.displayBooks(data.books);
       } else {
@@ -71,7 +71,7 @@ class NavBar {
       console.error('libraryContainer not found!');
       return;
     }
-    
+
     if (books.length === 0) {
       this.libraryContainer.innerHTML = '<p class="text-center py-8 px-4 text-gray-500 text-sm italic">No books available</p>';
       return;
@@ -93,7 +93,7 @@ class NavBar {
       item.addEventListener('click', () => {
         this.selectBook(item);
       });
-      
+
       // Add hover shimmer effect
       item.addEventListener('mouseenter', () => {
         const shimmer = item.querySelector('.library-shimmer');
@@ -102,7 +102,7 @@ class NavBar {
           shimmer.style.left = '-100%';
         }, 700);
       });
-      
+
       // Reset shimmer on mouse leave for smoother experience
       item.addEventListener('mouseleave', () => {
         const shimmer = item.querySelector('.library-shimmer');
@@ -114,7 +114,7 @@ class NavBar {
   selectBook(bookElement) {
     const bookId = bookElement.dataset.bookId;
     const bookName = bookElement.dataset.bookName;
-    
+
     // Remove selection from all books - reset to normal Tailwind classes
     this.libraryContainer.querySelectorAll('.library-book-item').forEach(item => {
       // Reset to normal state classes
@@ -123,11 +123,11 @@ class NavBar {
         .replace(/bg-gradient-to-br from-primary to-gray-800/, 'bg-white/60')
         .replace(/text-white/, '')
         .replace(/border-white\/20/, 'border-transparent');
-      
+
       // Reset title and status colors
       const title = item.querySelector('.book-title');
       const status = item.querySelector('.book-status');
-      
+
       if (title) {
         title.className = title.className.replace(/text-white/, 'text-gray-800 hover:text-primary');
       }
@@ -136,16 +136,16 @@ class NavBar {
         status.textContent = '✓';
       }
     });
-    
+
     // Add selection to clicked book - apply selected Tailwind classes
     bookElement.className = bookElement.className
       .replace(/bg-white\/60/, 'bg-gradient-to-br from-primary to-gray-800')
       .replace(/border-transparent/, 'border-white/20') + ' selected text-white';
-    
+
     // Update title and status for selected book
     const selectedTitle = bookElement.querySelector('.book-title');
     const selectedStatus = bookElement.querySelector('.book-status');
-    
+
     if (selectedTitle) {
       selectedTitle.className = selectedTitle.className.replace(/text-gray-800 hover:text-primary/, 'text-white');
     }
@@ -153,17 +153,17 @@ class NavBar {
       selectedStatus.className = selectedStatus.className.replace(/text-green-600/, 'text-green-300');
       selectedStatus.textContent = '✓';
     }
-    
+
     this.selectedBook = bookId;
-    
+
     // Update the chapter controller with the selected book
     if (window.chapterPageController) {
       window.chapterPageController.bookname = bookName;
     }
-    
+
     // Load and display chapters for selected book
     this.loadBookChapters(bookId);  // Use bookId instead of bookName
-    
+
     // Show success message
   }
 
@@ -194,7 +194,7 @@ class NavBar {
 
   displayError(message) {
     if (!this.libraryContainer) return;
-    
+
     this.libraryContainer.innerHTML = `<p class="text-center py-8 px-4 text-red-500 text-sm font-medium">${message}</p>`;
   }
 
@@ -202,7 +202,7 @@ class NavBar {
     try {
       const response = await fetch(`/api/book-chapters/${bookname}`);
       const data = await response.json();
-      
+
       if (data.success) {
         this.displayChapters(data.chapters);
         // Clear previous chapter selections
@@ -223,7 +223,7 @@ class NavBar {
       console.error('menuChapters element not found!');
       return;
     }
-    
+
     if (chapters.length === 0) {
       this.menuChapters.innerHTML = `
         <div class="flex items-center justify-center h-full text-gray-400 p-6">
@@ -263,7 +263,7 @@ class NavBar {
     // Add event listeners to chapter items
     this.menuChapters.querySelectorAll('.chapter-item').forEach(item => {
       item.addEventListener('click', (e) => this.selectChapter(item, e));
-      
+
       // DUPLICATE: Add hover shimmer effect - exact same as library (lines 97-110)
       /*
       item.addEventListener('mouseenter', () => {
@@ -273,7 +273,7 @@ class NavBar {
           shimmer.style.left = '-100%';
         }, 700);
       });
-      
+
       // Reset shimmer on mouse leave for smoother experience
       item.addEventListener('mouseleave', () => {
         const shimmer = item.querySelector('.chapter-shimmer');
@@ -293,11 +293,11 @@ class NavBar {
     const chapterId = chapterElement.dataset.chapterId;
     const chapterIndex = parseInt(chapterElement.dataset.chapterIndex);
     const currentTime = Date.now();
-    
+
     // Check for double click (within 300ms)
-    const isDoubleClick = (currentTime - this.lastClickTime < 300) && 
+    const isDoubleClick = (currentTime - this.lastClickTime < 300) &&
                          (this.lastClickedChapter === chapterId);
-    
+
     if (isDoubleClick) {
       // Double click: select all chapters from 0 to current (inclusive)
       this.selectAllPreviousChapters(chapterIndex);
@@ -312,7 +312,7 @@ class NavBar {
       this.clearChapterSelection();
       this.toggleChapterSelection(chapterElement, chapterId);
     }
-    
+
     this.lastSelectedChapterIndex = chapterIndex;
     this.lastClickTime = currentTime;
     this.lastClickedChapter = chapterId;
@@ -322,7 +322,7 @@ class NavBar {
   selectChapterRange(startIndex, endIndex) {
     const start = Math.min(startIndex, endIndex);
     const end = Math.max(startIndex, endIndex);
-    
+
     const chapterItems = this.menuChapters.querySelectorAll('.chapter-item');
     for (let i = start; i <= end; i++) {
       if (chapterItems[i]) {
@@ -346,7 +346,7 @@ class NavBar {
   selectAllPreviousChapters(toIndex) {
     // Clear previous selection
     this.clearChapterSelection();
-    
+
     // Select all chapters from 0 to toIndex (inclusive)
     const chapterItems = this.menuChapters.querySelectorAll('.chapter-item');
     for (let i = 0; i <= toIndex; i++) {
@@ -370,25 +370,25 @@ class NavBar {
     this.menuChapters.querySelectorAll('.chapter-item').forEach(item => {
       const chapterId = item.dataset.chapterId;
       const isSelected = this.selectedChapters.has(chapterId);
-      
+
       // Get child elements
       const chapterTitle = item.querySelector('.chapter-title');
       const chapterNumber = item.querySelector('.chapter-number');
       const chapterSeparator = item.querySelector('.chapter-title .mx-1');
       const chapterText = item.querySelector('.chapter-text');
       const chapterStatus = item.querySelector('.chapter-status');
-      
+
       if (isSelected) {
         // Apply selected state - same as library items
         item.className = item.className
           .replace(/bg-white\/60/, 'bg-gradient-to-br from-primary to-gray-800')
           .replace(/border-transparent/, 'border-white/20')
           .replace(/text-gray-800/, 'text-white');
-        
+
         if (!item.classList.contains('selected')) {
           item.classList.add('selected', 'text-white');
         }
-        
+
         // Update child elements for selected state
         if (chapterTitle) {
           chapterTitle.className = chapterTitle.className
@@ -415,9 +415,9 @@ class NavBar {
           .replace(/bg-gradient-to-br from-primary to-gray-800/, 'bg-white/60')
           .replace(/text-white/, '')
           .replace(/border-white\/20/, 'border-transparent');
-        
+
         item.classList.remove('selected');
-        
+
         // Update child elements for unselected state
         if (chapterTitle) {
           chapterTitle.className = chapterTitle.className
@@ -442,7 +442,7 @@ class NavBar {
 
   displayChaptersError(message) {
     if (!this.menuChapters) return;
-    
+
     this.menuChapters.innerHTML = `
       <div class="chapters-header p-4 border-b border-gray-200 bg-white/50">
         <h3 class="text-primary text-sm font-semibold m-0 text-center">Chapters</h3>
@@ -459,7 +459,7 @@ class NavBar {
     const selected = this.getSelectedChapters();
     const chapterElements = this.menuChapters.querySelectorAll('.chapter-item');
     const info = [];
-    
+
     selected.forEach(chapterId => {
       const element = this.menuChapters.querySelector(`[data-chapter-id="${chapterId}"]`);
       if (element) {
@@ -470,7 +470,7 @@ class NavBar {
         });
       }
     });
-    
+
     return info.sort((a, b) => a.number - b.number);
   }
 }
@@ -630,7 +630,7 @@ class GenerateController {
 
         // Get selected chapters
         const selectedChapters = navbar.getSelectedChaptersInfo();
-        
+
         if (selectedChapters.length === 0) {
             alert('Seleziona almeno un capitolo da generare!');
             return;
@@ -662,7 +662,7 @@ class GenerateController {
         try {
             // Prepare selected chapter IDs for the API
             const selectedChapterIds = chapters.map(ch => ch.id);
-            
+
             this.currentGeneration.status = 'processing';
             this.updateGenerationProgress('Elaborando capitoli...', 30);
 
@@ -686,17 +686,17 @@ class GenerateController {
                 this.currentGeneration.status = 'completed';
                 this.currentGeneration.result = result.data;
                 this.updateGenerationProgress('Completato!', 100);
-                
+
                 // Show results
                 this.displayGenerationResults(result.data);
                 this.showSuccess(`Generazione completata per ${result.data.total_chapters} capitoli!`);
-                
+
                 // Clear saved state since completed
                 this.clearGenerationState();
             } else {
                 throw new Error(result.error || 'Unknown error in generation');
             }
-            
+
         } catch (error) {
             console.error('Generation error:', error);
             this.currentGeneration.status = 'error';
@@ -707,11 +707,11 @@ class GenerateController {
             // Reset state
             this.isGenerating = false;
             this.currentGeneration = null;
-            
+
             // Re-enable button
             this.generateBtn.disabled = false;
             this.generateBtn.innerHTML = '<span class="text-xl">⚡</span> Genera';
-            
+
             // Sync reset to mobile button
             if (window.mobileController && window.mobileController.mobileGeneraBtn) {
                 window.mobileController.mobileGeneraBtn.disabled = false;
@@ -725,7 +725,7 @@ class GenerateController {
         if (this.resultContent) {
             // Convert markdown to HTML using marked.js
             const htmlContent = marked.parse(data.gemini_summary);
-            
+
             // Add book and chapter information at the top
            const bookInfo = `
               <div class="border-l-4 border-primary rounded-xl mb-5 p-4">
@@ -737,19 +737,19 @@ class GenerateController {
             `;
 
             const fullContent = bookInfo + htmlContent;
-            
+
             // Set the content for desktop
             this.resultContent.innerHTML = fullContent;
-            
+
             // Sync content to mobile
             if (window.mobileController) {
                 window.mobileController.syncResultContent(fullContent);
             }
-            
+
             // Scroll to results area
-            this.resultContent.scrollIntoView({ 
-                behavior: 'smooth', 
-                block: 'start' 
+            this.resultContent.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
             });
         }
     }
@@ -764,9 +764,9 @@ class GenerateController {
                 <div style="width: ${percentage}%; height: 100%; background: white; border-radius: 2px; transition: width 0.3s ease;"></div>
             </div>
         `;
-        
+
         this.generateBtn.innerHTML = progressHTML;
-        
+
         // Sync progress to mobile button
         if (window.mobileController && window.mobileController.mobileGeneraBtn) {
             window.mobileController.mobileGeneraBtn.innerHTML = progressHTML;
@@ -788,7 +788,7 @@ class GenerateController {
             if (savedState) {
                 const state = JSON.parse(savedState);
                 const timeElapsed = Date.now() - state.timestamp;
-                
+
                 // If more than 5 minutes passed, consider it expired
                 if (timeElapsed > 5 * 60 * 1000) {
                     this.clearGenerationState();
@@ -813,7 +813,7 @@ class GenerateController {
     showRecoveryDialog(state) {
         const timeElapsed = Math.round((Date.now() - state.startTime) / 1000);
         const message = `È stata rilevata una generazione interrotta per "${state.bookName}".\n\nTempo trascorso: ${timeElapsed}s\n\nVuoi riprovare la generazione?`;
-        
+
         if (confirm(message)) {
             // Restart generation
             this.startGeneration(state.bookName, state.chapters);
@@ -861,13 +861,13 @@ class ChapterPageController {
         this.currentPage = 1;
         this.totalPages = 24; // Default value
         this.bookname = null; // Will be set when book is selected
-        
+
         this.init();
     }
 
     init() {
         this.removeEventListeners();
-        
+
         // Find elements with updated selectors
         this.prevBtn = document.querySelector('.chapter-page-selector .prev-btn');
         this.nextBtn = document.querySelector('.chapter-page-selector .next-btn');
@@ -904,7 +904,7 @@ class ChapterPageController {
 
         this.updateDisplay();
         this.addEventListeners();
-        
+
         // Load first page image only if bookname is set
         if (this.bookname) {
             this.updateImage();
@@ -994,14 +994,14 @@ class ChapterPageController {
             alert('Nessun libro selezionato');
             return;
         }
-        
+
         try {
             const response = await fetch('/api/analyze-chapter', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ 
+                body: JSON.stringify({
                     bookname: this.bookname,
                     pageNumber: this.currentPage
                 })
@@ -1012,7 +1012,7 @@ class ChapterPageController {
             }
 
             const data = await response.json();
-            
+
             if (data.success) {
                 this.displayChaptersList(data);
             } else {
@@ -1097,7 +1097,7 @@ displayChaptersList(data) {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ 
+                body: JSON.stringify({
                     bookname: this.bookname,
                     chaptersData: this.currentChaptersData
                 })
@@ -1108,7 +1108,7 @@ displayChaptersList(data) {
             }
 
             const result = await response.json();
-            
+
             if (result.success) {
                 alert(`PDF diviso con successo in ${result.totalChapters} capitoli!\nCartella: ${result.outputDirectory}`);
             } else {
@@ -1122,17 +1122,17 @@ displayChaptersList(data) {
 
     updateTotalPages(totalPages) {
         this.totalPages = totalPages;
-        
+
         // Update slider max value
         if (this.pageSlider) {
             this.pageSlider.max = totalPages;
         }
-        
+
         // Update input max value
         if (this.pageInput) {
             this.pageInput.max = totalPages;
         }
-        
+
         // Update display
         this.updateDisplay();
     }
@@ -1213,16 +1213,16 @@ displayChaptersList(data) {
 
         // Carica l'immagine reale dal server
         const imageUrl = `/api/book-image/${this.bookname}/${this.currentPage}`;
-        
+
         const timestamp = new Date().getTime();
         this.pageImage.src = `${imageUrl}?t=${timestamp}`;
         this.pageImage.style.opacity = '0.7';
-        
+
         this.pageImage.onload = () => {
             this.pageImage.style.opacity = '1';
             console.log(`Immagine caricata con successo per la pagina ${this.currentPage}`);
         };
-        
+
         this.pageImage.onerror = () => {
             console.error(`Errore nel caricamento dell'immagine per la pagina ${this.currentPage}`);
             // Fallback a un'immagine placeholder
@@ -1234,18 +1234,18 @@ displayChaptersList(data) {
     reconnectInputListeners() {
         // Ricollega gli event listener al nuovo input
         this.pageInput = document.querySelector('#page-number input[type="number"]');
-        
+
         if (this.pageInput) {
             // Rimuovi eventuali event listener esistenti
             this.pageInput.removeEventListener('input', this.inputHandler);
             this.pageInput.removeEventListener('change', this.inputChangeHandler);
             this.pageInput.removeEventListener('blur', this.inputBlurHandler);
-            
+
             // Aggiungi i nuovi event listener
             this.pageInput.addEventListener('input', this.inputHandler);
             this.pageInput.addEventListener('change', this.inputChangeHandler);
             this.pageInput.addEventListener('blur', this.inputBlurHandler);
-            
+
             // Aggiorna il valore corrente
             this.pageInput.value = this.currentPage;
         }
@@ -1256,7 +1256,7 @@ displayChaptersList(data) {
             console.log('No bookname set, skipping book elaboration');
             return;
         }
-        
+
         try {
             const response = await fetch('/api/bookelaboration', {
                 method: 'POST',
@@ -1271,7 +1271,7 @@ displayChaptersList(data) {
             }
 
             const data = await response.json();
-            
+
             if (data.success) {
                 this.totalPages = data.pages;
                 console.log(`Book elaborated successfully. Total pages: ${this.totalPages}`);
@@ -1291,7 +1291,7 @@ displayChaptersList(data) {
         const pageNumberDiv = document.querySelector('#page-number');
         if (pageNumberDiv) {
             pageNumberDiv.innerHTML = `Page <input type="number" min="1" max="${this.totalPages}" value="${this.currentPage}"> of ${this.totalPages}`;
-            
+
             // Re-get the input reference since we recreated it
             this.pageInput = document.querySelector('#page-number input[type="number"]');
             if (this.pageInput) {
@@ -1299,7 +1299,7 @@ displayChaptersList(data) {
                 this.pageInput.max = this.totalPages;
                 this.pageInput.value = this.currentPage;
                 this.pageInput.step = 1;
-                
+
                 // Re-add the keydown listener for the new input
                 this.pageInput.addEventListener('keydown', (e) => {
                     if ([8, 9, 27, 13, 35, 36, 37, 39, 46].indexOf(e.keyCode) !== -1 ||
@@ -1310,14 +1310,14 @@ displayChaptersList(data) {
                         e.preventDefault();
                     }
                 });
-                
+
                 // Re-add input event listeners
                 this.pageInput.addEventListener('input', this.inputHandler);
                 this.pageInput.addEventListener('change', this.inputChangeHandler);
                 this.pageInput.addEventListener('blur', this.inputBlurHandler);
             }
         }
-        
+
         // Update slider max value
         if (this.pageSlider) {
             this.pageSlider.max = this.totalPages;
@@ -1374,7 +1374,7 @@ async function cleanWorkspace() {
         });
 
         const data = await response.json();
-        
+
         if (data.success) {
             console.log('Workspace cleaned successfully');
         } else {
@@ -1388,7 +1388,7 @@ async function cleanWorkspace() {
 // Function to show chapter modal with selected book
 function showChapterModal(bookname) {
     const chapterModal = document.getElementById('chapter-confirmation');
-    
+
     if (chapterModal) {
         chapterModal.classList.add('show');
         document.body.style.overflow = 'hidden';
@@ -1466,7 +1466,7 @@ class MobileController {
     this.mobileLibraryContainer = document.getElementById('mobile-library-container');
     this.mobileChaptersContainer = document.getElementById('mobile-navbar-chapters');
     this.mobileResultContent = document.getElementById('mobile-result-content');
-    
+
     this.init();
   }
 
@@ -1515,95 +1515,259 @@ class MobileController {
   openLibraryDrawer() {
     this.closeChaptersDrawer();
     if (this.mobileLibraryDrawer) {
-      this.mobileLibraryDrawer.classList.add('mobile-drawer-open');
+      // Remove the default hidden transform and apply open transform
+      this.mobileLibraryDrawer.classList.remove('-translate-x-full');
+      this.mobileLibraryDrawer.classList.add('translate-x-0');
     }
     if (this.mobileBackdrop) {
-      this.mobileBackdrop.classList.add('mobile-backdrop-open');
+      this.mobileBackdrop.classList.remove('opacity-0', 'pointer-events-none');
+      this.mobileBackdrop.classList.add('opacity-100', 'pointer-events-auto');
     }
+    document.body.style.overflow = 'hidden';
     // Copy library content to mobile
     this.syncLibraryContent();
   }
 
   closeLibraryDrawer() {
     if (this.mobileLibraryDrawer) {
-      this.mobileLibraryDrawer.classList.remove('mobile-drawer-open');
+      // Restore the default hidden transform
+      this.mobileLibraryDrawer.classList.remove('translate-x-0');
+      this.mobileLibraryDrawer.classList.add('-translate-x-full');
     }
     if (this.mobileBackdrop) {
-      this.mobileBackdrop.classList.remove('mobile-backdrop-open');
+      this.mobileBackdrop.classList.remove('opacity-100', 'pointer-events-auto');
+      this.mobileBackdrop.classList.add('opacity-0', 'pointer-events-none');
     }
+    document.body.style.overflow = '';
   }
 
   openChaptersDrawer() {
     this.closeLibraryDrawer();
     if (this.mobileChaptersDrawer) {
-      this.mobileChaptersDrawer.classList.add('mobile-drawer-open');
+      // Remove the default hidden transform and apply open transform
+      this.mobileChaptersDrawer.classList.remove('translate-x-full');
+      this.mobileChaptersDrawer.classList.add('translate-x-0');
     }
     if (this.mobileBackdrop) {
-      this.mobileBackdrop.classList.add('mobile-backdrop-open');
+      this.mobileBackdrop.classList.remove('opacity-0', 'pointer-events-none');
+      this.mobileBackdrop.classList.add('opacity-100', 'pointer-events-auto');
     }
+    document.body.style.overflow = 'hidden';
     // Copy chapters content to mobile
     this.syncChaptersContent();
   }
 
   closeChaptersDrawer() {
     if (this.mobileChaptersDrawer) {
-      this.mobileChaptersDrawer.classList.remove('mobile-drawer-open');
+      // Restore the default hidden transform
+      this.mobileChaptersDrawer.classList.remove('translate-x-0');
+      this.mobileChaptersDrawer.classList.add('translate-x-full');
     }
     if (this.mobileBackdrop) {
-      this.mobileBackdrop.classList.remove('mobile-backdrop-open');
+      this.mobileBackdrop.classList.remove('opacity-100', 'pointer-events-auto');
+      this.mobileBackdrop.classList.add('opacity-0', 'pointer-events-none');
     }
+    document.body.style.overflow = '';
   }
 
   closeAllDrawers() {
     this.closeLibraryDrawer();
     this.closeChaptersDrawer();
+    document.body.style.overflow = '';
   }
 
-  syncLibraryContent() {
-    if (window.navbar && this.mobileLibraryContainer) {
-      const desktopContent = document.getElementById('library-container');
-      if (desktopContent) {
-        this.mobileLibraryContainer.innerHTML = desktopContent.innerHTML;
-        
-        // DUPLICATE: Re-add event listeners for mobile library items (similar to lines 92-95)
-        /*
-        this.mobileLibraryContainer.querySelectorAll('.library-book-item').forEach(item => {
-          item.addEventListener('click', () => {
-            if (window.navbar) {
-              window.navbar.selectBook(item);
-              this.closeLibraryDrawer();
-            }
-          });
-        });
-        */
+  async syncLibraryContent() {
+    try {
+      const response = await fetch('/api/library');
+      const data = await response.json();
+
+      if (data.success && this.mobileLibraryContainer) {
+        this.displayMobileBooks(data.books);
+      }
+    } catch (error) {
+      console.error('Failed to load mobile library:', error);
+      if (this.mobileLibraryContainer) {
+        this.mobileLibraryContainer.innerHTML = '<p class="text-center py-8 px-4 text-red-500 text-sm">Failed to load books</p>';
       }
     }
   }
 
-  syncChaptersContent() {
-    if (window.navbar && this.mobileChaptersContainer) {
-      const desktopContent = document.getElementById('navbar-chapters');
-      if (desktopContent) {
-        this.mobileChaptersContainer.innerHTML = desktopContent.innerHTML;
-        
-        // DUPLICATE: Re-add event listeners for mobile chapter items (similar to lines 267-268)
-        /*
-        this.mobileChaptersContainer.querySelectorAll('.chapter-item').forEach(item => {
-          item.addEventListener('click', (e) => {
-            if (window.navbar) {
-              window.navbar.selectChapter(item, e);
-            }
-          });
-        });
-        */
+  displayMobileBooks(books) {
+    if (!this.mobileLibraryContainer) return;
+
+    if (books.length === 0) {
+      this.mobileLibraryContainer.innerHTML = '<p class="text-center py-8 px-4 text-gray-500 text-sm italic">No books available</p>';
+      return;
+    }
+
+    this.mobileLibraryContainer.innerHTML = books.map(book => `
+      <div class="mobile-library-book-item relative overflow-hidden flex items-center p-3 mb-2 rounded-xl cursor-pointer bg-white/60 border border-transparent transition-all duration-300 hover:bg-white/90 hover:border-primary"
+           data-book-id="${book.id}" 
+           data-book-name="${book.displayName}">
+        <div class="book-info flex-1 min-w-0 relative z-10">
+          <h4 class="book-title text-sm font-semibold m-0 mb-1 leading-tight overflow-hidden text-ellipsis whitespace-nowrap text-gray-800">${book.displayName}</h4>
+          <div class="flex items-center gap-2 mt-2">
+            <span class="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full">📖 Book</span>
+          </div>
+        </div>
+      </div>
+    `).join('');
+
+    // Add event listeners to mobile book items
+    this.mobileLibraryContainer.querySelectorAll('.mobile-library-book-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const bookId = item.dataset.bookId;
+        const bookName = item.dataset.bookName;
+
+        // Close the drawer first
+        this.closeLibraryDrawer();
+
+        // Notify desktop navbar of selection if available
+        if (window.navbar) {
+          window.navbar.selectedBook = bookId;
+          window.navbar.loadBookChapters(bookId);
+        }
+
+        // Show success notification
+        this.showMobileNotification(`Selected: ${bookName}`, 'success');
+      });
+    });
+  }
+
+  async syncChaptersContent() {
+    if (!window.navbar || !window.navbar.selectedBook || !this.mobileChaptersContainer) {
+      this.mobileChaptersContainer.innerHTML = '<p class="text-center py-8 px-4 text-gray-500 text-sm italic">Select a book first</p>';
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/book-chapters/${window.navbar.selectedBook}`);
+      const data = await response.json();
+
+      if (data.success) {
+        this.displayMobileChapters(data.chapters || []);
+      } else {
+        throw new Error(data.error || 'Failed to load chapters');
+      }
+    } catch (error) {
+      console.error('Failed to load mobile chapters:', error);
+      this.mobileChaptersContainer.innerHTML = '<p class="text-center py-8 px-4 text-red-500 text-sm">Failed to load chapters</p>';
+    }
+  }
+
+  displayMobileChapters(chapters) {
+    if (!this.mobileChaptersContainer) return;
+
+    if (chapters.length === 0) {
+      this.mobileChaptersContainer.innerHTML = '<p class="text-center py-8 px-4 text-gray-500 text-sm italic">No chapters available</p>';
+      return;
+    }
+
+    this.mobileChaptersContainer.innerHTML = chapters.map((chapter, index) => `
+      <div class="mobile-chapter-item flex items-center p-3 mb-2 rounded-xl cursor-pointer bg-white/60 border border-transparent transition-all duration-300 hover:bg-white/90 hover:border-primary"
+           data-chapter-index="${index}" 
+           data-chapter-id="${chapter.id || index}">
+        <div class="chapter-number w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white font-bold text-sm mr-3">
+          ${index + 1}
+        </div>
+        <div class="chapter-details flex-1">
+          <h4 class="chapter-title text-sm font-semibold m-0 mb-1 leading-tight">${chapter.title || `Chapter ${index + 1}`}</h4>
+          <div class="chapter-info flex gap-2 text-xs text-gray-500">
+            <span class="page-range">Pages ${chapter.start_page || 'N/A'}-${chapter.end_page || 'N/A'}</span>
+            <span class="page-count">${chapter.page_count || 0} pages</span>
+          </div>
+        </div>
+        <div class="ml-2">
+          <div class="w-6 h-6 border-2 border-primary rounded flex items-center justify-center chapter-checkbox">
+            <span class="checkmark hidden text-primary text-sm">✓</span>
+          </div>
+        </div>
+      </div>
+    `).join('');
+
+    // Add event listeners to mobile chapter items
+    this.mobileChaptersContainer.querySelectorAll('.mobile-chapter-item').forEach((item, index) => {
+      item.addEventListener('click', () => {
+        this.handleMobileChapterSelection(item, index);
+      });
+    });
+  }
+
+  handleMobileChapterSelection(chapterElement, chapterIndex) {
+    const chapterId = chapterElement.dataset.chapterId;
+    const checkbox = chapterElement.querySelector('.chapter-checkbox');
+    const checkmark = chapterElement.querySelector('.checkmark');
+
+    if (chapterElement.classList.contains('selected')) {
+      // Deselect
+      chapterElement.classList.remove('selected');
+      checkbox.style.background = 'transparent';
+      checkmark.classList.add('hidden');
+
+      // Remove from navbar selection if available
+      if (window.navbar && window.navbar.selectedChapters) {
+        window.navbar.selectedChapters.delete(chapterId);
+      }
+    } else {
+      // Select
+      chapterElement.classList.add('selected');
+      checkbox.style.background = 'var(--color-primary)';
+      checkmark.classList.remove('hidden');
+      checkmark.style.color = 'white';
+
+      // Add to navbar selection if available
+      if (window.navbar && window.navbar.selectedChapters) {
+        window.navbar.selectedChapters.add(chapterId);
       }
     }
+
+    console.log('Selected chapters:', window.navbar?.selectedChapters ? Array.from(window.navbar.selectedChapters) : []);
   }
 
   syncResultContent(content) {
     if (this.mobileResultContent) {
       this.mobileResultContent.innerHTML = content;
     }
+  }
+
+  showMobileNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `fixed top-20 left-4 right-4 z-50 p-3 rounded-lg shadow-lg text-white transition-all duration-300 transform translate-y-[-20px] opacity-0`;
+
+    switch (type) {
+      case 'success':
+        notification.style.background = '#10b981';
+        break;
+      case 'error':
+        notification.style.background = '#ef4444';
+        break;
+      case 'warning':
+        notification.style.background = '#f59e0b';
+        break;
+      default:
+        notification.style.background = '#3b82f6';
+    }
+
+    notification.textContent = message;
+    document.body.appendChild(notification);
+
+    // Animate in
+    setTimeout(() => {
+      notification.style.transform = 'translate(0)';
+      notification.style.opacity = '1';
+    }, 100);
+
+    // Remove after 3 seconds
+    setTimeout(() => {
+      notification.style.transform = 'translate(0, -20px)';
+      notification.style.opacity = '0';
+      setTimeout(() => {
+        if (notification.parentNode) {
+          notification.parentNode.removeChild(notification);
+        }
+      }, 300);
+    }, 3000);
   }
 }
 

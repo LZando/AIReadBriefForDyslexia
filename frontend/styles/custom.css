@@ -53,6 +53,30 @@
     }
 }
 
+/* Miglioramenti tablet */
+@media (min-width: 769px) and (max-width: 1023px) {
+    .chapter-container {
+        width: 95%;
+        height: 85vh;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    
+    .chapter-page-selector,
+    .chapter-result {
+        flex: 1;
+        min-height: 300px;
+    }
+}
+
+/* Touch-friendly buttons */
+@media (hover: none) and (pointer: coarse) {
+    button, .cursor-pointer {
+        min-height: 44px;
+        min-width: 44px;
+    }
+}
+
 
 #library-menu-button.active,
 #chapter-menu-button.active {

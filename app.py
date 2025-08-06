@@ -5,9 +5,7 @@ from datetime import datetime
 from logic.extractor import extract_book_info, extract_page_image
 
 app = Flask(__name__)
-app.config["DEBUG"] = True
-
-
+book_temp = Path("bookstore") / "booktemp"
 @app.route("/")
 def index():
     return send_from_directory("frontend", "index.html")
@@ -31,15 +29,13 @@ def health():
 
 
 @app.route("/api/cleanup", methods=["POST"])
-def cleanup_workspace():
+def cleanup_pending_books():
     try:
-        book_temp = Path("bookstore") / "booktemp"
-        if book_temp.exists():
-            for item in book_temp.iterdir():
-                if item.is_file() or item.is_symlink():
-                    item.unlink()
-                elif item.is_dir():
-                    shutil.rmtree(item)
+        for item in book_temp.iterdir():
+            if item.is_file() or item.is_symlink():
+                item.unlink()
+            elif item.is_dir():
+                shutil.rmtree(item)
         return jsonify({"success": True})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
@@ -223,12 +219,10 @@ def serve_chapter_file(bookname, filename):
 
 @app.route("/api/save-chapters", methods=["POST"])
 def save_chapters():
-    print("Save")
     data = request.get_json()
+    print(data)
     bookname = data.get("bookname")
-    chapters_data = data.get("chaptersData")
-    if not bookname or not chapters_data:
-        return jsonify({"success": False, "message": "Missing data"}), 400
+    chapters_data = data.get("chapters")
     try:
         temp_dir = Path("temp")
         temp_dir.mkdir(exist_ok=True)
