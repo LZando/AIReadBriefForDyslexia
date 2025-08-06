@@ -4,6 +4,8 @@ import fitz
 from pathlib import Path
 from collections import Counter
 
+#This file provide most sensible pasrt of the logic, here there is the identification of the chapters
+
 def find_max_font(page):
     content = page.get_text("dict")
     spans = [

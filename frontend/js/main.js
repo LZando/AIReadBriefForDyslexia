@@ -3,6 +3,7 @@ import { AddLibraryModal } from './controllers/AddLibraryModal.js';
 import { GenerateController } from './controllers/GenerateController.js';
 import { ChapterPageController } from './controllers/ChapterPageController.js';
 import { MobileController } from './controllers/MobileController.js';
+import LoadingModal from './controllers/LoadingModal.js';
 import { DOMHelpers } from './utils/domHelpers.js';
 import notifications from './utils/notifications.js';
 
@@ -13,6 +14,7 @@ class AIReadBriefApp {
     this.generateController = null;
     this.chapterPageController = null;
     this.mobileController = null;
+    this.loadingModal = null;
 
     this.init();
   }
@@ -49,6 +51,10 @@ class AIReadBriefApp {
 
       this.mobileController = new MobileController();
       window.mobileController = this.mobileController;
+
+      LoadingModal.init();
+      this.loadingModal = LoadingModal;
+      window.loadingModal = this.loadingModal;
 
       this.initializeChapterModal();
 

@@ -1,6 +1,3 @@
-/**
- * GenerateController - Manages summary generation functionality
- */
 import APIClient from '../utils/api.js';
 import notifications from '../utils/notifications.js';
 import { DOMHelpers } from '../utils/domHelpers.js';

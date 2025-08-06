@@ -1,6 +1,7 @@
 import APIClient from '../utils/api.js';
 import notifications from '../utils/notifications.js';
 import { DOMHelpers } from '../utils/domHelpers.js';
+import LoadingModal from './LoadingModal.js';
 
 export class AddLibraryModal {
   constructor() {
@@ -10,6 +11,8 @@ export class AddLibraryModal {
     this.cancelButton = DOMHelpers.getElementById('cancel-btn');
     this.form = DOMHelpers.getElementById('add-library-form');
 
+    LoadingModal.init();
+    this.loadingModal = LoadingModal;
     this.init();
   }
 
@@ -112,69 +115,53 @@ export class AddLibraryModal {
   }
 
   async handleSubmit(e) {
-    e.preventDefault();
+  e.preventDefault();
 
-    const formData = DOMHelpers.getFormData(this.form);
-    const { title, author } = formData;
-    const bookFile = this.form.elements['pdf-file'].files[0];
+  // 1. Validazioni prima di mostrare il loader
+  const { title, author } = DOMHelpers.getFormData(this.form);
+  const file = this.form.elements['pdf-file'].files[0];
+  if (!title?.trim()) {
+    notifications.error('Title is required.');
+    return;
+  }
+  if (!file || !['application/pdf','application/epub+zip'].includes(file.type)) {
+    notifications.error('Please upload a PDF or EPUB file.');
+    return;
+  }
 
-    if (!title || !title.trim()) {
-      notifications.error('Title is required.');
-      return;
+  // 2. Tutto valido → mostra loader e disabilita bottone
+  this.loadingModal.show();
+  const submitBtn = this.form.querySelector('button[type="submit"]');
+  const originalText = submitBtn.innerHTML;
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = '<span class="spinner mr-2"></span>Uploading...';
+
+  try {
+    const formData = new FormData();
+    formData.append('title', title.trim());
+    formData.append('author', (author?.trim() || 'Unknown Author'));
+    formData.append('book-file', file);
+
+    const data = await APIClient.uploadBook(formData);
+    if (!data.success || !data.bookname) {
+      throw new Error(data.error || 'Book upload failed.');
     }
 
-    if (!bookFile || bookFile.size === 0) {
-      notifications.error('Please upload a PDF or EPUB file.');
-      return;
-    }
-
-    const allowedTypes = ['application/pdf', 'application/epub+zip'];
-    if (!allowedTypes.includes(bookFile.type)) {
-      notifications.error('Only PDF or EPUB files are allowed.');
-      return;
-    }
-
-    const submitBtn = this.form.querySelector('button[type="submit"]');
-    const originalText = submitBtn.innerHTML;
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = '<span class="spinner mr-2"></span>Uploading...';
-
-    try {
-      const uploadFormData = new FormData();
-      uploadFormData.append('title', title.trim());
-      uploadFormData.append('author', (author || '').trim() || 'Unknown Author');
-      uploadFormData.append('book-file', bookFile);
-
-      const data = await APIClient.uploadBook(uploadFormData);
-
-      if (data.success) {
-        this.closeModal();
-        notifications.success(`Book "${title}" uploaded successfully!`);
-
-     if (document.readyState === 'loading') {
-      await new Promise(resolve => {
-        document.addEventListener('DOMContentLoaded', resolve);
-      });
-    }
-
+    this.closeModal();
+    notifications.success(`Book "${title}" uploaded successfully!`);
     window.showChapterModal(data.bookname);
 
-
-      } else {
-        throw new Error(data.error || 'Book upload failed.');
-      }
-
-    } catch (error) {
-      console.error('Upload error:', error);
-      notifications.error(`Upload failed: ${error.message}`);
-    } finally {
-      // Reset button state
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = originalText;
-      }
-    }
+  } catch (err) {
+    console.error('Upload error:', err);
+    notifications.error(`Upload failed: ${err.message}`);
+  } finally {
+    // 3. Nascondi sempre il loader e resetta il bottone
+    this.loadingModal.hide();
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = originalText;
   }
+}
+
 
   addBook() {
     this.handleAddButtonClick();

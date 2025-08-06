@@ -2,14 +2,12 @@ import sys
 import os
 import json
 from pathlib import Path
-import fitz  # PyMuPDF for PDF text extraction
-
-# To run this code you need to install the following dependencies:
-# pip install google-genai
-
+import fitz
 import base64
 from google import genai
 from google.genai import types
+
+#This file provide Gemini response
 
 def extract_text_from_pdf(pdf_path):
     try:
@@ -22,8 +20,21 @@ def extract_text_from_pdf(pdf_path):
     except Exception as e:
         return f"Error extracting text from {pdf_path}: {str(e)}"
 
-def generate_with_gemini(input_text):
-    """Generate content using Gemini AI"""
+def generate_with_gemini(input_text, mode):
+    if mode == "summarization":
+        prompt = (
+            "Ti verranno forniti uno o più capitoli di un libro; "
+            "crea un riassunto molto dettagliato del contenuto condiviso."
+        )
+    else:
+        prompt = (
+            "Ti verranno forniti uno o più capitoli di un libro; "
+            "organizza chiaramente i personaggi in ordine di rilevanza, "
+            "evidenziando chi sono, le loro caratteristiche e cosa hanno fatto in breve."
+            "Il risutalto deve essere esempio Marco: [Descrizione] [Breve descrizione di cose fatte]"
+            "Solo personaggi dentro il libro, non parlare dell'autore o altre cose in prefazione su personaggi non nel libro"
+        )
+
     try:
         client = genai.Client(
             api_key=os.environ.get("GEMINI_API_KEY"),
@@ -43,7 +54,7 @@ def generate_with_gemini(input_text):
                 thinking_budget=-1,
             ),
             system_instruction=[
-                types.Part.from_text(text="""Ti verrà fornito un capitolo/i di un libro, creami un riassunto molto dettagliato di quanto ti è stato condiviso."""),
+                types.Part.from_text(text=prompt),
             ],
         )
 
@@ -60,7 +71,7 @@ def generate_with_gemini(input_text):
     except Exception as e:
         return f"Error generating with Gemini: {str(e)}"
 
-def extract_chapter_info(bookname, selected_chapters):
+def extract_chapter_info(bookname, selected_chapters, mode):
     try:
         if not os.environ.get("GEMINI_API_KEY"):
             raise ValueError("GEMINI_API_KEY environment variable not set")
@@ -69,44 +80,27 @@ def extract_chapter_info(bookname, selected_chapters):
         
         if not book_dir.exists():
             raise FileNotFoundError(f"Book directory not found: {book_dir}")
-        
-        # Debug: List all files in the directory (to stderr)
-        print(f"DEBUG: Book directory {book_dir} exists", file=sys.stderr)
-        print(f"DEBUG: Files in directory: {list(book_dir.glob('*'))}", file=sys.stderr)
-        print(f"DEBUG: Selected chapters: {selected_chapters}", file=sys.stderr)
-        
-        # Extract chapter information and texts
+
         chapters_info = []
         all_chapters_text = ""
         
         for chapter_id in selected_chapters:
-            print(f"DEBUG: Processing chapter_id: {chapter_id}", file=sys.stderr)
-            # Parse chapter ID format: bookname_cap{number}
             if '_cap' in chapter_id:
                 chapter_number = chapter_id.split('_cap')[1]
-                print(f"DEBUG: Extracted chapter number: {chapter_number}", file=sys.stderr)
-                
-                # Find the corresponding PDF file (use simpler pattern)
+
                 pattern = f'cap{chapter_number}*.pdf'
                 chapter_files = list(book_dir.glob(pattern))
-                print(f"DEBUG: Looking for pattern {pattern}, found files: {chapter_files}", file=sys.stderr)
                 
                 if chapter_files:
                     chapter_file = chapter_files[0]
                     filename = chapter_file.name
-                    print(f"DEBUG: Processing file: {filename}", file=sys.stderr)
-                    
-                    # Extract title from filename: cap{number}[TITLE].pdf
+
                     import re
                     match = re.match(r'cap(\d+)\[(.+)\]\.pdf', filename)
                     if match:
                         cap_num = int(match.group(1))
                         cap_title = match.group(2).replace('_', ' ')
-                        print(f"DEBUG: Extracted cap_num: {cap_num}, cap_title: {cap_title}", file=sys.stderr)
-                        
-                        # Extract text from PDF
                         chapter_text = extract_text_from_pdf(str(chapter_file))
-                        print(f"DEBUG: Extracted text length: {len(chapter_text)}", file=sys.stderr)
                         
                         chapter_info = {
                             'chapter_number': cap_num,
@@ -119,25 +113,20 @@ def extract_chapter_info(bookname, selected_chapters):
                         }
                         
                         chapters_info.append(chapter_info)
-                        
-                        # Add to combined text
+
                         all_chapters_text += f"\n\n=== CAPITOLO {cap_num}: {cap_title} ===\n\n{chapter_text}"
                     else:
-                        print(f"DEBUG: Filename {filename} doesn't match expected pattern", file=sys.stderr)
+                        print(f"Error: Filename {filename} doesn't match expected pattern", file=sys.stderr)
                 else:
-                    print(f"DEBUG: No files found for pattern {pattern}", file=sys.stderr)
+                    print(f"Error: No files found for pattern {pattern}", file=sys.stderr)
             else:
-                print(f"DEBUG: Chapter ID {chapter_id} doesn't contain '_cap'", file=sys.stderr)
-        
-        # Sort by chapter number
+                print(f"Error: Chapter ID {chapter_id} doesn't contain '_cap'", file=sys.stderr)
+
         chapters_info.sort(key=lambda x: x['chapter_number'])
-        
-        print(f"DEBUG: Total chapters found: {len(chapters_info)}", file=sys.stderr)
-        print(f"DEBUG: Combined text length: {len(all_chapters_text)}", file=sys.stderr)
-        
-        # Generate summary with Gemini only if we have text
+
+
         if all_chapters_text.strip():
-            summary = generate_with_gemini(all_chapters_text)
+            summary = generate_with_gemini(all_chapters_text, mode)
         else:
             summary = "Nessun contenuto di capitoli trovato per la generazione."
         
@@ -170,8 +159,7 @@ def extract_chapter_info(bookname, selected_chapters):
         }
 
 def main():
-    """Main function for command line usage"""
-    if len(sys.argv) < 3:
+    if len(sys.argv) < 4:
         print(json.dumps({
             'status': 'error',
             'message': 'Usage: python gemini_generation.py <bookname> <chapter_ids_json>'
@@ -181,15 +169,13 @@ def main():
     try:
         bookname = sys.argv[1]
         chapter_ids_json = sys.argv[2]
-        
-        # Parse chapter IDs
+        mode = sys.argv[3]
+
         selected_chapters = json.loads(chapter_ids_json)
+
+        result = extract_chapter_info(bookname, selected_chapters, mode)
+        print(json.dumps(result))
         
-        # Extract chapter information
-        result = extract_chapter_info(bookname, selected_chapters)
-        
-        # Output result as JSON
-        print(json.dumps(result, ensure_ascii=False, indent=2))
         
     except json.JSONDecodeError:
         print(json.dumps({

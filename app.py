@@ -114,7 +114,7 @@ def book_elaboration():
 @app.route("/api/book-image/<bookname>/<int:page_number>")
 def book_image(bookname, page_number):
     cache_dir = (
-        Path("bookstore") / "booktemp" / "elaboratebook" / "cache" / bookname
+        Path("bookstore") / "booktemp" / "cache" / bookname
     )
     image_filename = f"page_{page_number:03d}.png"
     image_file = cache_dir / image_filename
@@ -180,6 +180,7 @@ def get_book_chapters(bookname):
 @app.route("/api/gemini-generation", methods=["POST"])
 def gemini_generation():
     try:
+        mode = "summarization" #Todo: Implement other functions
         data = request.get_json()
         bookname = data.get("bookname")
         selected = data.get("selectedChapters", [])
@@ -190,7 +191,7 @@ def gemini_generation():
         chapters_json = json.dumps(selected)
         env = os.environ.copy()
         result = subprocess.run(
-            [sys.executable, "logic/gemini_generation.py", bookname, chapters_json],
+            [sys.executable, "logic/gemini_generation.py", bookname, chapters_json, mode],
             capture_output=True,
             text=True,
             check=True,

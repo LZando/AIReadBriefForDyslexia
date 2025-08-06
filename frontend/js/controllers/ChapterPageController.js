@@ -223,7 +223,16 @@ export class ChapterPageController {
           DOMHelpers.removeClass(modal, 'show');
           DOMHelpers.allowBodyScroll();
         }
-        window.refreshAll();
+        // Refresh library to show the new book
+        if (window.navbar) {
+          await window.navbar.loadLibraryBooks();
+        }
+        
+        // Refresh all components
+        if (window.aiReadBriefApp) {
+          window.aiReadBriefApp.refreshAll();
+        }
+        
         if (window.navbar && window.navbar.selectedBook) {
           await window.navbar.loadBookChapters(window.navbar.selectedBook);
         }

@@ -3,6 +3,10 @@ import sys
 import json
 import fitz
 
+#This file provide
+# 1. Lenght of the book (in pages)
+# 2. Picture for the preview
+
 def _pdf_path(bookname: str) -> str:
     return os.path.join("bookstore", "booktemp", f"{bookname}.pdf")
 
@@ -22,7 +26,7 @@ def extract_page_image(bookname: str, page_number: int):
     if not os.path.exists(pdf_path):
         raise FileNotFoundError(f"File not found: {pdf_path}")
     output_dir = os.path.join(
-        "bookstore", "booktemp", "elaboratebook", "cache", bookname
+        "bookstore", "booktemp", "cache", bookname
     )
     os.makedirs(output_dir, exist_ok=True)
     doc = fitz.open(pdf_path)
