@@ -39,6 +39,15 @@ class APIClient {
   }
 
   /**
+   * Delete book
+   */
+  async deleteBook(bookId) {
+    return this.request(`/library/${bookId}`, {
+      method: 'DELETE'
+    });
+  }
+
+  /**
    * Get book chapters
    */
   async getBookChapters(bookId) {

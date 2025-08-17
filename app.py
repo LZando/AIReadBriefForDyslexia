@@ -48,14 +48,39 @@ def get_library():
         books = []
         if books_dir.exists():
             for item in books_dir.iterdir():
+                # Genera una descrizione basata sul nome del libro
+                display_name = item.name.replace("_", " ").title()
+                description = f"Libro completo con tutti i capitoli elaborati. {display_name} è stato processato e suddiviso in capitoli per una lettura facilitata."
+                
                 books.append(
                     {
                         "name": item.name,
                         "id": item.name,
-                        "displayName": item.name.replace("_", " ").title(),
+                        "displayName": display_name,
+                        "description": description,
                     }
                 )
         return jsonify({"success": True, "books": books})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/api/library/<book_id>", methods=["DELETE"])
+def delete_book(book_id):
+    try:
+        books_dir = Path("bookstore") / "elaboratebook"
+        book_path = books_dir / book_id
+        
+        if not book_path.exists():
+            return jsonify({"success": False, "error": "Book not found"}), 404
+            
+        # Remove the book directory and all its contents
+        if book_path.is_dir():
+            shutil.rmtree(book_path)
+        else:
+            book_path.unlink()
+            
+        return jsonify({"success": True, "message": "Book deleted successfully"})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
@@ -163,12 +188,19 @@ def get_book_chapters(bookname):
             for pdf_file in book_dir.glob("cap*.pdf"):
                 match = re.match(r"cap(\d+)\[(.+)\]", pdf_file.stem)
                 if match:
+                    chapter_number = int(match.group(1))
+                    chapter_title = match.group(2).replace("_", " ")
+                    
+                    # Genera una descrizione per il capitolo
+                    description = f"Capitolo {chapter_number}: {chapter_title}. Questo capitolo è stato estratto e ottimizzato per una lettura facilitata."
+                    
                     chapters.append(
                         {
-                            "number": int(match.group(1)),
-                            "title": match.group(2).replace("_", " "),
+                            "number": chapter_number,
+                            "title": chapter_title,
                             "filename": pdf_file.name,
-                            "id": f"{bookname}_cap{match.group(1)}",
+                            "id": f"{bookname}_cap{chapter_number}",
+                            "description": description,
                         }
                     )
             chapters.sort(key=lambda x: x["number"])

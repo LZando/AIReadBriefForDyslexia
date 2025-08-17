@@ -98,6 +98,13 @@ export class NavBar {
         <div class="book-info flex-1 min-w-0 relative z-10">
           <h4 class="book-title text-sm font-semibold m-0 mb-1 leading-tight overflow-hidden text-ellipsis whitespace-nowrap transition-colors duration-300 ${this.selectedBook === book.id ? 'text-white' : 'text-gray-800 hover:text-primary'}">${book.displayName}</h4>
         </div>
+        
+        <!-- Icona cestino -->
+        <button class="delete-book relative z-10 ml-3 p-1 rounded-lg hover:bg-red-100 transition">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 ${this.selectedBook === book.id ? 'text-white' : 'text-gray-500 hover:text-red-600'}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5-4h4m-4 0a1 1 0 00-1 1v1h6V4a1 1 0 00-1-1m-4 0h4"/>
+          </svg>
+        </button>
       </div>
     `).join('');
 
@@ -106,6 +113,15 @@ export class NavBar {
       item.addEventListener('click', () => {
         this.selectBook(item);
       });
+
+      // Add delete button event listener
+      const deleteBtn = item.querySelector('.delete-book');
+      if (deleteBtn) {
+        deleteBtn.addEventListener('click', (e) => {
+          e.stopPropagation(); // Prevent book selection when clicking delete
+          this.deleteBook(item);
+        });
+      }
       
       // Add hover shimmer effect
       item.addEventListener('mouseenter', () => {
@@ -174,6 +190,40 @@ export class NavBar {
     if (!this.libraryContainer) return;
     
     this.libraryContainer.innerHTML = `<p class="text-center py-8 px-4 text-red-500 text-sm font-medium">${message}</p>`;
+  }
+
+  async deleteBook(bookElement) {
+    const bookId = bookElement.dataset.bookId;
+    const bookName = bookElement.dataset.bookName;
+
+    // Show confirmation dialog
+    if (!confirm(`Sei sicuro di voler eliminare "${bookName}"? Questa azione non può essere annullata.`)) {
+      return;
+    }
+
+    try {
+      const data = await APIClient.deleteBook(bookId);
+
+      if (data.success) {
+        // Remove the book element from the UI
+        bookElement.remove();
+        
+        // If this was the selected book, clear the selection
+        if (this.selectedBook === bookId) {
+          this.selectedBook = null;
+          this.selectedChapters.clear();
+          this.displayChapters([]);
+        }
+
+        // Show success notification
+        notifications.success(`Libro "${bookName}" eliminato con successo`);
+      } else {
+        notifications.error(`Errore nell'eliminazione: ${data.error}`);
+      }
+    } catch (error) {
+      console.error('Error deleting book:', error);
+      notifications.error('Errore nell\'eliminazione del libro');
+    }
   }
 
   async loadBookChapters(bookname) {
