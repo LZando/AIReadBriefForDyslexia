@@ -19,6 +19,9 @@ export class MobileController {
     this.mobileLibraryContainer = DOMHelpers.getElementById('mobile-library-container');
     this.mobileChaptersContainer = DOMHelpers.getElementById('mobile-navbar-chapters');
     this.mobileResultContent = DOMHelpers.getElementById('mobile-result-content');
+
+    this.stateMobileLibraryBtn = false;
+    this.stateMobileChaptersBtn = false;
     
     this.init();
   }
@@ -65,39 +68,50 @@ export class MobileController {
     }
   }
 
-  openLibraryDrawer() {
-    this.closeChaptersDrawer();
-    if (this.mobileLibraryDrawer) {
-      // Remove the default hidden transform and apply open transform
-      DOMHelpers.setClasses(this.mobileLibraryDrawer, ['translate-x-0'], ['-translate-x-full']);
-    }
-    if (this.mobileBackdrop) {
-      DOMHelpers.setClasses(this.mobileBackdrop, ['opacity-100', 'pointer-events-auto'], ['opacity-0', 'pointer-events-none']);
-    }
-    DOMHelpers.preventBodyScroll();
-    // Load library content
-    this.syncLibraryContent();
-  }
+    openLibraryDrawer() {
+        this.closeChaptersDrawer();
+        if (this.stateMobileLibraryBtn == false) {
+            DOMHelpers.setClasses(this.mobileLibraryDrawer, ['translate-x-0'], ['-translate-x-full']);
+            this.stateMobileLibraryBtn = true;
 
-  closeLibraryDrawer() {
-    if (this.mobileLibraryDrawer) {
-      // Restore the default hidden transform
-      DOMHelpers.setClasses(this.mobileLibraryDrawer, ['-translate-x-full'], ['translate-x-0']);
+            if (this.mobileBackdrop) {
+                DOMHelpers.setClasses(this.mobileBackdrop, ['opacity-100', 'pointer-events-auto'], ['opacity-0', 'pointer-events-none']);
+            }
+        }
+        else
+        {
+            this.closeLibraryDrawer()
+        }
+        DOMHelpers.preventBodyScroll();
+        this.syncLibraryContent();
     }
-    if (this.mobileBackdrop) {
-      DOMHelpers.setClasses(this.mobileBackdrop, ['opacity-0', 'pointer-events-none'], ['opacity-100', 'pointer-events-auto']);
+
+    closeLibraryDrawer() {
+        if (this.stateMobileLibraryBtn == true) {
+            DOMHelpers.setClasses(this.mobileLibraryDrawer, ['-translate-x-full'], ['translate-x-0']);
+            this.stateMobileLibraryBtn = false;
+            if (this.mobileBackdrop) {
+                DOMHelpers.setClasses(this.mobileBackdrop, ['opacity-0', 'pointer-events-none'], ['opacity-100', 'pointer-events-auto']);
+            }
+        }
+
+        DOMHelpers.allowBodyScroll();
     }
-    DOMHelpers.allowBodyScroll();
-  }
 
   openChaptersDrawer() {
     this.closeLibraryDrawer();
-    if (this.mobileChaptersDrawer) {
-      // Remove the default hidden transform and apply open transform
-      DOMHelpers.setClasses(this.mobileChaptersDrawer, ['translate-x-0'], ['translate-x-full']);
-    }
-    if (this.mobileBackdrop) {
-      DOMHelpers.setClasses(this.mobileBackdrop, ['opacity-100', 'pointer-events-auto'], ['opacity-0', 'pointer-events-none']);
+    if (this.stateMobileChaptersBtn == false) {
+      if (this.mobileChaptersDrawer) {
+        // Remove the default hidden transform and apply open transform
+        DOMHelpers.setClasses(this.mobileChaptersDrawer, ['translate-x-0'], ['translate-x-full']);
+      }
+      this.stateMobileChaptersBtn = true;
+      
+      if (this.mobileBackdrop) {
+        DOMHelpers.setClasses(this.mobileBackdrop, ['opacity-100', 'pointer-events-auto'], ['opacity-0', 'pointer-events-none']);
+      }
+    } else {
+      this.closeChaptersDrawer();
     }
     DOMHelpers.preventBodyScroll();
     // Load chapters content
@@ -105,12 +119,16 @@ export class MobileController {
   }
 
   closeChaptersDrawer() {
-    if (this.mobileChaptersDrawer) {
-      // Restore the default hidden transform
-      DOMHelpers.setClasses(this.mobileChaptersDrawer, ['translate-x-full'], ['translate-x-0']);
-    }
-    if (this.mobileBackdrop) {
-      DOMHelpers.setClasses(this.mobileBackdrop, ['opacity-0', 'pointer-events-none'], ['opacity-100', 'pointer-events-auto']);
+    if (this.stateMobileChaptersBtn == true) {
+      if (this.mobileChaptersDrawer) {
+        // Restore the default hidden transform
+        DOMHelpers.setClasses(this.mobileChaptersDrawer, ['translate-x-full'], ['translate-x-0']);
+      }
+      this.stateMobileChaptersBtn = false;
+      
+      if (this.mobileBackdrop) {
+        DOMHelpers.setClasses(this.mobileBackdrop, ['opacity-0', 'pointer-events-none'], ['opacity-100', 'pointer-events-auto']);
+      }
     }
     DOMHelpers.allowBodyScroll();
   }
@@ -118,6 +136,9 @@ export class MobileController {
   closeAllDrawers() {
     this.closeLibraryDrawer();
     this.closeChaptersDrawer();
+    // Reset states
+    this.stateMobileLibraryBtn = false;
+    this.stateMobileChaptersBtn = false;
     DOMHelpers.allowBodyScroll();
   }
 
@@ -151,7 +172,6 @@ export class MobileController {
         <div class="book-info flex-1 min-w-0 relative z-10">
           <h4 class="book-title text-sm font-semibold m-0 mb-1 leading-tight overflow-hidden text-ellipsis whitespace-nowrap text-gray-800">${book.displayName}</h4>
           <div class="flex items-center gap-2 mt-2">
-            <span class="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full">📖 Book</span>
           </div>
         </div>
       </div>
@@ -220,8 +240,7 @@ export class MobileController {
         <div class="chapter-details flex-1">
           <h4 class="chapter-title text-sm font-semibold m-0 mb-1 leading-tight">${chapter.title || `Chapter ${index + 1}`}</h4>
           <div class="chapter-info flex gap-2 text-xs text-gray-500">
-            <span class="page-range">Pages ${chapter.start_page || 'N/A'}-${chapter.end_page || 'N/A'}</span>
-            <span class="page-count">${chapter.page_count || 0} pages</span>
+
           </div>
         </div>
         <div class="ml-2">

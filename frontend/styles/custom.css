@@ -588,6 +588,26 @@
     scrollbar-color: var(--color-primary) rgba(0, 0, 0, 0.05);
 }
 
+/* Mobile result content height limit */
+@media (max-width: 768px) {
+    #mobile-result-content {
+        max-height: 80vh !important;
+        overflow-y: auto !important;
+    }
+    
+    /* Ensure mobile main content doesn't exceed viewport */
+    .mobile-main-content {
+        max-height: 100vh !important;
+        overflow: hidden !important;
+    }
+    
+    /* Ensure generate button stays visible */
+    #mobile-genera-btn {
+        position: relative !important;
+        z-index: 10 !important;
+    }
+}
+
 
 
 @keyframes modalSlideIn {

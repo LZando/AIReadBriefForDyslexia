@@ -11,7 +11,7 @@
 This application transforms complex reading materials into digestible, accessible content through:
 
 - **📖 Automatic Chapter Detection**: Uses advanced font analysis to intelligently identify chapter boundaries in PDF documents
-- **🧠 AI-Powered Summaries**: Leverages Google's Gemini AI to create detailed, contextual summaries of selected chapters
+- **🧠 AI-Powered Summaries**: Leverages Google's Gemini AI to create detailed summaries or extract character information from selected chapters
 - **🎯 Personalized Reading Experience**: Allows users to focus on specific sections and get targeted assistance
 - **♿ Accessibility First**: Designed specifically to support people with reading difficulties
 
@@ -43,11 +43,13 @@ This application transforms complex reading materials into digestible, accessibl
 
 - 🔍 **Smart Chapter Detection**: Automatically identifies chapter boundaries using font analysis
 - 📱 **Responsive Design**: Works seamlessly on desktop and mobile devices
-- 🗂️ **Personal Library**: Organize and manage your processed books
+- 🗂️ **Personal Library**: Organize and manage your processed books with delete functionality
 - ⚡ **Intelligent Caching**: Fast access to previously processed content
 - 🎨 **Dyslexia-Friendly UI**: Clean, accessible interface designed for readability
 - 🔄 **Real-time Processing**: Watch your document being processed in real-time
 - 💾 **Persistent Storage**: Your library and summaries are saved for future access
+- 🎭 **Dual Analysis Modes**: Choose between summarization or character extraction
+- 🗑️ **Library Management**: Delete books from your library when no longer needed
 
 ## 🛠️ Installation
 
@@ -94,17 +96,22 @@ This application transforms complex reading materials into digestible, accessibl
    ```
 
 2. **Open your browser:**
-   Navigate to `http://localhost:3000`
+   Navigate to `http://localhost:5000`
 
 3. **Upload a PDF:**
    - Click the library icon to access your personal library
    - Upload a PDF document
    - Wait for automatic chapter detection
 
-4. **Generate summaries:**
+4. **Generate summaries or character analysis:**
    - Browse detected chapters
-   - Select chapters you want summarized
-   - Get AI-powered summaries in seconds
+   - Select chapters you want to analyze
+   - Choose between "Summarization" or "Characters" mode
+   - Get AI-powered analysis in seconds
+
+5. **Manage your library:**
+   - Delete books you no longer need using the trash icon
+   - Organize your collection efficiently
 
 ## 📁 Project Structure
 
@@ -134,8 +141,9 @@ AIReadBriefForDyslexia/
 |----------|--------|-------------|
 | `/api/health` | GET | Application health check |
 | `/api/library` | GET/POST | Manage personal library |
+| `/api/library/<book_id>` | DELETE | Delete book from library |
 | `/api/bookelaboration` | POST | Process uploaded books |
-| `/api/analyze-chapter` | POST | Generate chapter summaries |
+| `/api/gemini-generation` | POST | Generate summaries or character analysis |
 | `/api/book-image/<book>/<page>` | GET | Retrieve page images |
 | `/api/cleanup` | POST | Clean temporary files |
 
@@ -151,9 +159,12 @@ AIReadBriefForDyslexia/
 - Identifies consistent patterns that indicate chapter boundaries
 - Creates a structured chapter index with page numbers and titles
 
-### 3. **AI Summarization**
+### 3. **AI Analysis**
 - Selected chapters are sent to Google's Gemini AI
-- Custom prompts ensure summaries are detailed and contextual
+- Choose between two analysis modes:
+  - **Summarization**: Detailed, contextual summaries of content
+  - **Characters**: Extract and analyze character information from text
+- Custom prompts ensure analysis is relevant and detailed
 - Results are cached for quick future access
 
 ### 4. **Accessibility Features**
@@ -168,26 +179,30 @@ AIReadBriefForDyslexia/
 - Quickly review lengthy academic papers
 - Extract key findings from research documents
 - Compare concepts across multiple sources
+- Analyze character development in literary studies
 
 ### 📚 Personal Reading
 - Catch up on book club selections
 - Review classic literature with modern context
 - Explore non-fiction topics efficiently
+- Track character relationships in complex narratives
 
 ### 🏫 Educational Support
 - Assist students with learning disabilities
 - Provide reading support in multiple languages
 - Create study guides from textbooks
+- Analyze character development for literature classes
 
 ### 💼 Professional Development
 - Extract insights from business books
 - Review industry reports efficiently
 - Analyze policy documents and white papers
+- Character analysis for storytelling and communication training
 
 ## 🔒 Privacy & Security
 
 - **Local Processing**: All document processing happens on your device
-- **Secure API Usage**: Only chapter text is sent to AI services for summarization
+- **Secure API Usage**: Only chapter text is sent to AI services for analysis
 - **No Data Collection**: Your reading habits and documents remain private
 - **Temporary Storage**: Uploaded files can be cleaned up automatically
 
