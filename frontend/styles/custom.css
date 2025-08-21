@@ -8,6 +8,51 @@
     background-color: white;
 }
 
+/* Radio Button Styling */
+.radio-option {
+    transition: all 0.2s ease;
+}
+
+.radio-option:hover {
+    transform: translateX(2px);
+}
+
+.radio-option input[type="radio"] {
+    display: none;
+}
+
+.radio-custom {
+    width: 18px;
+    height: 18px;
+    border: 2px solid #d1d5db;
+    border-radius: 50%;
+    position: relative;
+    transition: all 0.2s ease;
+    background-color: white;
+}
+
+.radio-option input[type="radio"]:checked + .radio-custom {
+    border-color: var(--color-primary);
+    background-color: var(--color-primary);
+}
+
+.radio-option input[type="radio"]:checked + .radio-custom::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 6px;
+    height: 6px;
+    background-color: white;
+    border-radius: 50%;
+}
+
+.radio-option:hover .radio-custom {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(45, 55, 72, 0.1);
+}
+
 
 
 .hide {

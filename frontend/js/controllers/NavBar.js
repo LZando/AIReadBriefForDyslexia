@@ -197,7 +197,7 @@ export class NavBar {
     const bookName = bookElement.dataset.bookName;
 
     // Show confirmation dialog
-    if (!confirm(`Sei sicuro di voler eliminare "${bookName}"? Questa azione non può essere annullata.`)) {
+            if (!confirm(`Are you sure you want to delete "${bookName}"? This action cannot be undone.`)) {
       return;
     }
 
@@ -216,13 +216,13 @@ export class NavBar {
         }
 
         // Show success notification
-        notifications.success(`Libro "${bookName}" eliminato con successo`);
+        notifications.success(`Book "${bookName}" deleted successfully`);
       } else {
-        notifications.error(`Errore nell'eliminazione: ${data.error}`);
+        notifications.error(`Error during deletion: ${data.error}`);
       }
     } catch (error) {
       console.error('Error deleting book:', error);
-      notifications.error('Errore nell\'eliminazione del libro');
+              notifications.error('Error deleting the book');
     }
   }
 

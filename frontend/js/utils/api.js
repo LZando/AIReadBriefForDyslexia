@@ -57,12 +57,13 @@ class APIClient {
   /**
    * Generate summary
    */
-  async generateSummary(bookId, chapters) {
+  async generateSummary(bookId, chapters, mode ) {
     return this.request('/gemini-generation', {
       method: 'POST',
       body: JSON.stringify({ 
         bookname: bookId, 
-        selectedChapters: chapters 
+        selectedChapters: chapters,
+        mode: mode
       })
     });
   }

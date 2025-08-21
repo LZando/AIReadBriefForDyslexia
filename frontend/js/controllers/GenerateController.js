@@ -10,6 +10,8 @@ export class GenerateController {
     this.mobileResultContent = DOMHelpers.getElementById('mobile-result-content');
     this.isGenerating = false;
     this.currentGeneration = null;
+    this.SummarizationRadio = DOMHelpers.getElementById('SummarizationRadio');
+    this.CharactersRadio = DOMHelpers.getElementById('CharactersRadio');
     
     this.init();
   }
@@ -32,7 +34,7 @@ export class GenerateController {
     window.addEventListener('beforeunload', (e) => {
       if (this.isGenerating) {
         e.preventDefault();
-        e.returnValue = 'È in corso una generazione. Sei sicuro di voler uscire?';
+        e.returnValue = 'A generation is in progress. Are you sure you want to leave?';
         return e.returnValue;
       }
     });
@@ -56,21 +58,33 @@ export class GenerateController {
     const selectedChapters = window.navbar.getSelectedChaptersInfo();
     
     if (selectedChapters.length === 0) {
-      notifications.warning('Seleziona almeno un capitolo da generare!');
+      notifications.warning('Please select at least one chapter to generate!');
       return;
+    }
+
+    let mode;
+
+    if (this.SummarizationRadio && this.SummarizationRadio.checked) {
+        mode = "Summarization";
+    } else if (this.CharactersRadio && this.CharactersRadio.checked) {
+        mode = "Characters";
+    } else {
+        // Default to Summarization if no radio is selected
+        mode = "Summarization";
     }
 
     // Start generation
     const bookName = window.navbar.selectedBook;
-    this.startGeneration(bookName, selectedChapters);
+    this.startGeneration(bookName, selectedChapters, mode);
   }
 
-  async startGeneration(bookName, chapters) {
+  async startGeneration(bookName, chapters, mode = "Summarization") {
     // Set generation state
     this.isGenerating = true;
     this.currentGeneration = {
       bookName: bookName,
       chapters: chapters,
+      mode: mode,
       startTime: Date.now(),
       status: 'starting'
     };
@@ -80,28 +94,28 @@ export class GenerateController {
 
     // Update UI
     this.disableButtons();
-    this.updateGenerationProgress('Iniziando generazione...', 0);
+          this.updateGenerationProgress('Starting generation...', 0);
 
     try {
       // Prepare selected chapter IDs for the API
       const selectedChapterIds = chapters.map(ch => ch.id);
       
       this.currentGeneration.status = 'processing';
-      this.updateGenerationProgress('Elaborando capitoli...', 30);
+      this.updateGenerationProgress('Processing chapters...', 30);
 
       // Call the Gemini generation API
-      const result = await APIClient.generateSummary(bookName, selectedChapterIds);
+      const result = await APIClient.generateSummary(bookName, selectedChapterIds, mode);
 
-      this.updateGenerationProgress('Ricevendo risposta da Gemini...', 70);
+      this.updateGenerationProgress('AI responding...', 70);
 
       if (result.success) {
         this.currentGeneration.status = 'completed';
         this.currentGeneration.result = result.data;
-        this.updateGenerationProgress('Completato!', 100);
+        this.updateGenerationProgress('Complete!', 100);
         
         // Show results
         this.displayGenerationResults(result.data);
-        notifications.success(`Generazione completata per ${result.data.total_chapters} capitoli!`);
+        notifications.success(`Generation completed for ${result.data.total_chapters} chapters!`);
         
         // Clear saved state since completed
         this.clearGenerationState();
@@ -113,7 +127,7 @@ export class GenerateController {
       console.error('Generation error:', error);
       this.currentGeneration.status = 'error';
       this.currentGeneration.error = error.message;
-      notifications.error(`Errore durante la generazione: ${error.message}`);
+      notifications.error(`Error during generation: ${error.message}`);
       this.clearGenerationState();
     } finally {
       // Reset state
@@ -198,7 +212,7 @@ export class GenerateController {
   }
 
   resetButtons() {
-    const defaultHTML = '<span class="text-xl">⚡</span> Genera';
+    const defaultHTML = 'Generate';
     
     if (this.generateBtn) {
       this.generateBtn.disabled = false;
@@ -250,7 +264,7 @@ export class GenerateController {
 
   showRecoveryDialog(state) {
     const timeElapsed = Math.round((Date.now() - state.startTime) / 1000);
-    const message = `È stata rilevata una generazione interrotta per "${state.bookName}".\n\nTempo trascorso: ${timeElapsed}s\n\nVuoi riprovare la generazione?`;
+            const message = `An interrupted generation was detected for "${state.bookName}".\n\nTime elapsed: ${timeElapsed}s\n\nDo you want to retry the generation?`;
     
     if (confirm(message)) {
       // Restart generation

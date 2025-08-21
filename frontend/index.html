@@ -75,11 +75,23 @@
                 </div>
             </div>
 
-            <div class="flex justify-center items-center">
+            <div class="flex justify-center items-center gap-2">
                 <button id="genera-btn"
                         class="inline-flex items-center justify-center px-6 py-3 rounded-2xl font-semibold text-base cursor-pointer transition-all duration-200 shadow-lg bg-primary text-white gap-2 hover:bg-gray-700">
-                    Genera
+                    Generate
                 </button>
+                <div class="radio-group flex flex-col gap-3 mt-4">
+                    <label class="radio-option flex items-center gap-3 cursor-pointer">
+                        <input id="SummarizationRadio" type="radio" name="mode" value="Summarization" checked>
+                        <span class="radio-custom"></span>
+                        <span class="text-sm font-medium text-gray-700">Summarization</span>
+                    </label>
+                    <label class="radio-option flex items-center gap-3 cursor-pointer">
+                        <input id="CharactersRadio" type="radio" name="mode" value="Characters">
+                        <span class="radio-custom"></span>
+                        <span class="text-sm font-medium text-gray-700">Characters</span>
+                    </label>
+                </div>
             </div>
         </div>
 
@@ -141,8 +153,8 @@
                     <div class="flex items-center justify-center h-full text-gray-400">
                         <div class="text-center">
                             <span class="text-3xl block mb-3">📄</span>
-                            <p class="text-center text-sm font-medium mb-2">Seleziona un libro e alcuni capitoli</p>
-                            <p class="text-xs text-gray-500">Poi clicca "Genera" per vedere il riassunto</p>
+                            <p class="text-center text-sm font-medium mb-2">Select a book and some chapters</p>
+                            <p class="text-xs text-gray-500">Then click "Generate" to see the summary</p>
                         </div>
                     </div>
                 </div>
@@ -150,8 +162,7 @@
                 <!-- Mobile Generate Button -->
                 <div class="flex justify-center items-center p-4">
                     <button id="mobile-genera-btn" class="w-full max-w-xs inline-flex items-center justify-center px-6 py-4 rounded-2xl font-semibold text-lg cursor-pointer transition-all duration-200 shadow-lg bg-primary text-white gap-3 hover:bg-gray-700 active:scale-95">
-                        <span class="text-xl">⚡</span>
-                        Genera
+                        Generate
                     </button>
                 </div>
             </div>

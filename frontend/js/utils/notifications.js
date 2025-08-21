@@ -16,7 +16,7 @@ class NotificationManager {
     const id = Date.now() + Math.random();
     notification.dataset.notificationId = id;
     
-    notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg text-white transition-all duration-300 transform translate-x-full max-w-sm`;
+    notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg text-white transition-all duration-300 transform translate-x-full max-w-md max-h-32 overflow-y-auto`;
     
     switch (type) {
       case 'success':
@@ -68,6 +68,10 @@ class NotificationManager {
    * Show error notification
    */
   error(message, duration = 5000) {
+    // Truncate very long error messages
+    if (message.length > 200) {
+      message = message.substring(0, 200) + '...';
+    }
     return this.show(message, 'error', duration);
   }
 

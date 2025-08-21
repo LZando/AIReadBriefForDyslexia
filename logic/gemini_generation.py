@@ -21,7 +21,8 @@ def extract_text_from_pdf(pdf_path):
         return f"Error extracting text from {pdf_path}: {str(e)}"
 
 def generate_with_gemini(input_text, mode):
-    if mode == "summarization":
+    print("Request ready")
+    if mode.lower() == "summarization":
         prompt = (
             "Ti verranno forniti uno o più capitoli di un libro; "
             "crea un riassunto molto dettagliato del contenuto condiviso."
@@ -128,7 +129,7 @@ def extract_chapter_info(bookname, selected_chapters, mode):
         if all_chapters_text.strip():
             summary = generate_with_gemini(all_chapters_text, mode)
         else:
-            summary = "Nessun contenuto di capitoli trovato per la generazione."
+            summary = "No chapter content found for generation."
         
         result = {
             'status': 'success',
@@ -159,10 +160,11 @@ def extract_chapter_info(bookname, selected_chapters, mode):
         }
 
 def main():
+    print("Recever ready")
     if len(sys.argv) < 4:
         print(json.dumps({
             'status': 'error',
-            'message': 'Usage: python gemini_generation.py <bookname> <chapter_ids_json>'
+            'message': 'Usage: python gemini_generation.py <bookname> <chapter_ids_json> <mode>'
         }))
         sys.exit(1)
     

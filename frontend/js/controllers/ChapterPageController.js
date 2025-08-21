@@ -140,7 +140,7 @@ export class ChapterPageController {
 
   async extractChapters() {
     if (!this.bookname) {
-      notifications.warning('Nessun libro selezionato');
+              notifications.warning('No book selected');
       return;
     }
     

@@ -48,7 +48,6 @@ def get_library():
         books = []
         if books_dir.exists():
             for item in books_dir.iterdir():
-                # Genera una descrizione basata sul nome del libro
                 display_name = item.name.replace("_", " ").title()
                 description = f"Libro completo con tutti i capitoli elaborati. {display_name} è stato processato e suddiviso in capitoli per una lettura facilitata."
                 
@@ -211,33 +210,65 @@ def get_book_chapters(bookname):
 
 @app.route("/api/gemini-generation", methods=["POST"])
 def gemini_generation():
-    try:
-        mode = "summarization" #Todo: Implement other functions
-        data = request.get_json()
-        bookname = data.get("bookname")
-        selected = data.get("selectedChapters", [])
-        if not bookname or not selected:
-            return jsonify({"success": False, "error": "Missing data"}), 400
-        if not os.environ.get("GEMINI_API_KEY"):
-            return jsonify({"success": False, "error": "Missing API key"}), 500
-        chapters_json = json.dumps(selected)
-        env = os.environ.copy()
-        result = subprocess.run(
-            [sys.executable, "logic/gemini_generation.py", bookname, chapters_json, mode],
-            capture_output=True,
-            text=True,
-            check=True,
-            env=env,
-        )
-        generation_data = json.loads(result.stdout.strip())
-        if generation_data.get("status") == "error":
-            return jsonify({"success": False, "error": generation_data.get("message")}), 500
-        return jsonify({"success": True, "data": generation_data})
-    except subprocess.CalledProcessError as e:
-        return jsonify({"success": False, "error": e.stderr}), 500
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
+    # Leggi il body JSON senza esplodere se manca l'header giusto
+    data = request.get_json(silent=True) or {}
 
+    bookname = data.get("bookname")
+    selected = data.get("selectedChapters", [])
+    mode = data.get("mode", "Summarization")
+
+    # Validazioni minime
+    if not bookname or not selected:
+        return jsonify({"success": False, "error": "Missing data"}), 400
+
+    if not os.environ.get("GEMINI_API_KEY"):
+        return jsonify({"success": False, "error": "Missing API key"}), 500
+
+    chapters_json = json.dumps(selected)
+    env = os.environ.copy()
+
+    # Niente try/except: non usiamo check=True per evitare eccezioni automatiche
+    result = subprocess.run(
+        [sys.executable, "logic/gemini_generation.py", bookname, chapters_json, mode],
+        capture_output=True,
+        text=True,
+        check=False,
+        env=env,
+    )
+
+    # Se il processo è fallito, ritorna stderr
+    if result.returncode != 0:
+        return jsonify({"success": False, "error": result.stderr or "Subprocess failed"}), 500
+
+    out = (result.stdout or "").strip()
+    if not out:
+        return jsonify({"success": False, "error": "No output from gemini_generation.py"}), 500
+
+    # Prova a isolare JSON pulito: (1) ultima riga non vuota se sembra JSON, altrimenti (2) blocco tra { ... }
+    json_text = ""
+    lines = [ln for ln in out.splitlines() if ln.strip()]
+    if lines and (lines[-1].lstrip().startswith("{") and lines[-1].rstrip().endswith("}")):
+        json_text = lines[-1]
+    else:
+        start = out.find("{")
+        end = out.rfind("}")
+        if start != -1 and end != -1 and end > start:
+            json_text = out[start:end+1]
+
+    if not json_text:
+        return jsonify({
+            "success": False,
+            "error": "Invalid JSON from subprocess (no JSON block found)",
+            "raw_stdout": out[:1000]
+        }), 500
+
+    # ATTENZIONE: se il JSON è malformato qui Flask tornerà 500 (come richiesto, senza try/except)
+    generation_data = json.loads(json_text)
+
+    if generation_data.get("status") == "error":
+        return jsonify({"success": False, "error": generation_data.get("message")}), 500
+
+    return jsonify({"success": True, "data": generation_data})
 
 @app.route("/api/chapter-file/<bookname>/<filename>")
 def serve_chapter_file(bookname, filename):
